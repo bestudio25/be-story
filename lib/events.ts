@@ -136,6 +136,7 @@ export async function buildStoryData(ev: EventRow, visitorId: string | null, opt
       story: reels?.lite ?? reels?.web,
       "story-poster": reels?.poster,
       soundtrack: (await signedUrl(ev.soundtrack_key, { expires: 86400 })) ?? undefined,
+      "soundtrack-start": ev.soundtrack_key ? String(Number((ev as unknown as { soundtrack_start_sec?: string }).soundtrack_start_sec ?? 0)) : undefined,
     },
     links: { whatsapp: BE_WHATSAPP(), instagram: BE_INSTAGRAM(), site: SITE_URL() },
     favorites, reactions, preview: opts.preview,

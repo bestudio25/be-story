@@ -38,11 +38,16 @@ const vibrate = p => { try{ navigator.vibrate && navigator.vibrate(p); }catch{} 
 
 let audioOn = false;
 // ── Trilha sonora do evento (enviada no painel) ──
-const music = M('soundtrack') ? Object.assign(new Audio(M('soundtrack')), { loop:true, preload:'auto', volume:0 }) : null;
+const music = M('soundtrack') ? Object.assign(new Audio(M('soundtrack')), { preload:'auto', volume:0 }) : null;
+const MUSIC_START = Math.max(0, parseFloat(MEDIA['soundtrack-start'] || '0') || 0);
+let musicStarted = false;
+if(music){ // começa no trecho escolhido no painel e, ao terminar, volta para esse mesmo trecho
+  music.addEventListener('ended', ()=>{ music.currentTime = MUSIC_START; music.play().catch(()=>{}); });
+}
 let musicMuted = false, ducked = false, fadeT;
 function fadeTo(v, ms=900){ if(!music) return; clearInterval(fadeT); const from=music.volume, t0=performance.now();
   fadeT=setInterval(()=>{ const p=Math.min(1,(performance.now()-t0)/ms); music.volume=Math.max(0,Math.min(1,from+(v-from)*p)); if(p>=1){ clearInterval(fadeT); if(v===0) music.pause(); } },40); }
-function musicPlay(){ if(!music||musicMuted||ducked) return; music.play().then(()=>fadeTo(.55)).catch(()=>{}); }
+function musicPlay(){ if(!music||musicMuted||ducked) return; if(!musicStarted){ musicStarted=true; const seek=()=>{ try{ music.currentTime = MUSIC_START; }catch{} }; if(music.readyState>=1) seek(); else music.addEventListener('loadedmetadata', seek, { once:true }); } music.play().then(()=>fadeTo(.55)).catch(()=>{}); }
 function musicStop(){ if(music && !music.paused) fadeTo(0,500); }
 function syncSoundIcons(){ const on = music ? (!musicMuted) : audioOn;
   ['#op-sound','#sound-btn'].forEach(sel=>{ const b=$(sel); if(!b) return; b.setAttribute('aria-pressed',on); b.setAttribute('aria-label', on?'Silenciar':'Ativar som'); b.querySelector('use').setAttribute('href', on?'#i-sound':'#i-mute'); }); }

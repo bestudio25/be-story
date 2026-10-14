@@ -28,9 +28,19 @@ export const PUT = handle(async (req: Request, { params }: P) => {
   if (!(await size(key).catch(() => 0))) return json({ error: "O envio não terminou. Tente de novo." }, 400);
   const db = sql();
   const [old] = await db`select soundtrack_key from events where id = ${id}`;
-  await db`update events set soundtrack_key = ${key}, soundtrack_name = ${(name ?? "").slice(0, 200) || null}, updated_at = now() where id = ${id}`;
+  await db`update events set soundtrack_key = ${key}, soundtrack_name = ${(name ?? "").slice(0, 200) || null}, soundtrack_start_sec = 0, updated_at = now() where id = ${id}`;
   if (old?.soundtrack_key && old.soundtrack_key !== key) await deletePrefix(old.soundtrack_key).catch(() => {});
   return json({ ok: true });
+});
+
+/** define a partir de que segundo a música começa */
+export const PATCH = handle(async (req: Request, { params }: P) => {
+  await requireAdmin();
+  const { id } = await params;
+  const { start } = await body<{ start?: number }>(req);
+  const sec = Math.max(0, Math.min(3600, Number(start) || 0));
+  await sql()`update events set soundtrack_start_sec = ${sec}, updated_at = now() where id = ${id}`;
+  return json({ ok: true, start: sec });
 });
 
 /** remove a trilha */

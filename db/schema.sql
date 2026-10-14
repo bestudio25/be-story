@@ -205,3 +205,4 @@ create table if not exists uploads (
 
 -- ── Ajustes incrementais (idempotentes) ──────────────────────────
 alter table events add column if not exists soundtrack_name text;
+alter table events add column if not exists soundtrack_start_sec numeric not null default 0;

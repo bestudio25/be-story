@@ -118,7 +118,14 @@ function Picker({ title, items, multi, initial, onClose, onSave }: { title: stri
 function Trilha({ d, reload, toast }: Pick<Ctx, "d" | "reload" | "toast">) {
   const e = d.event;
   const input = useRef<HTMLInputElement>(null);
+  const player = useRef<HTMLAudioElement>(null);
   const [busy, setBusy] = useState<string>("");
+  const saved = Number(e.soundtrack_start_sec ?? 0);
+  const [start, setStart] = useState(fmt(saved));
+  const saveStart = async (sec: number) => {
+    await api(`/api/admin/events/${e.id}/soundtrack`, { method: "PATCH", body: { start: sec } });
+    setStart(fmt(sec)); await reload(); toast(`A música vai começar em ${fmt(sec)}`);
+  };
   const send = async (file: File) => {
     try {
       const type = file.type || (/\.m4a$/i.test(file.name) ? "audio/mp4" : "audio/mpeg");
@@ -152,9 +159,24 @@ function Trilha({ d, reload, toast }: Pick<Ctx, "d" | "reload" | "toast">) {
       {e.soundtrack_url ? (
         <div className="space-y-1">
           <div className="text-xs text-white/60">{e.soundtrack_name || "Música enviada"}</div>
-          <audio controls preload="none" src={e.soundtrack_url} className="w-full" />
+          <audio ref={player} controls preload="metadata" src={e.soundtrack_url} className="w-full" />
+          <div className="flex flex-wrap items-center gap-2 pt-2 text-sm">
+            <span className="text-white/60">Começar a música em</span>
+            <input className="field w-24 text-center" value={start} onChange={(ev) => setStart(ev.target.value)} placeholder="0:00" aria-label="Início da música (minutos:segundos)" />
+            <button className="chip" onClick={() => { const s = parse(start); if (s === null) return toast("Use o formato minutos:segundos, ex.: 1:05"); saveStart(s); }}>Salvar início</button>
+            <button className="chip" onClick={() => { const a = player.current; if (a) saveStart(Math.floor(a.currentTime)); }}>Usar o ponto em que o player está</button>
+            <button className="chip" onClick={() => { const a = player.current; const s = parse(start); if (a && s !== null) { a.currentTime = s; a.play(); } }}>Ouvir a partir daí</button>
+          </div>
+          <div className="text-xs text-white/40">Salvo: começa em {fmt(saved)}. Quando a música termina, ela volta para esse mesmo ponto.</div>
         </div>
       ) : <div className="text-xs text-white/40">Nenhuma música. Sem trilha, o site fica em silêncio e o ícone de som não aparece.</div>}
     </div>
   );
+}
+
+function fmt(sec: number) { const s = Math.max(0, Math.round(sec)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }
+function parse(v: string): number | null {
+  const t = v.trim(); if (!t) return 0;
+  const m = t.match(/^(\d+)(?::(\d{1,2}))?$/); if (!m) return null;
+  return m[2] === undefined ? Number(m[1]) : Number(m[1]) * 60 + Number(m[2]);
 }

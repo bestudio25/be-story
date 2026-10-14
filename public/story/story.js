@@ -73,7 +73,7 @@ function tick(now){
 function finishReveal(){
   done=true; paintReveal(1); dev.style.opacity=0; vibrate([18,40,18]);
   $('#op-hint').style.opacity=0;
-  fitHand(hand); setTimeout(()=>hand.classList.add('write'), reduce?0:250); setTimeout(()=>$('#pol-date').classList.add('in'), reduce?0:2300);
+  fitHand(hand); hand.classList.add('write'); setTimeout(()=>$('#pol-date').classList.add('in'), reduce?0:400);
   $('#op-letter').classList.add('show'); const lines=$$('#op-letter .l'); lines.forEach((l,i)=>setTimeout(()=>l.classList.add('in'), reduce?0:1700+i*650));
   if(matchMedia('(max-width:899px)').matches){ const op=$('#opening'), L=$('#op-letter'), beh=reduce?'auto':'smooth';
     setTimeout(()=>op.scrollTo({top:Math.max(0,L.offsetTop-innerHeight*.45),behavior:beh}), reduce?0:1500);

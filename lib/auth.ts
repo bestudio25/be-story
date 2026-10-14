@@ -1,9 +1,10 @@
+import { appSecret } from "./secret";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import { sql, hasDb } from "./db";
 
-const secret = () => new TextEncoder().encode(process.env.SESSION_SECRET || "dev-only-secret-troque-em-producao-0000");
+const secret = () => new TextEncoder().encode(appSecret());
 
 export const ADMIN_COOKIE = "be_admin";
 export const eventCookie = (slug: string) => `be_ev_${slug.replace(/[^a-z0-9-]/g, "")}`;

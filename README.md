@@ -59,12 +59,12 @@ Sem o CORS, o envio direto pelo painel e o "Gerar minha Polaroid" não funcionam
 ### 3. Leitura do Drive (Google Cloud)
 1. Em console.cloud.google.com, crie o projeto **be-story** e ative a **Google Drive API**.
 2. Em *IAM e administrador → Contas de serviço*, crie **be-story-drive**, abra a conta → *Chaves* → *Adicionar chave* → **JSON**.
-3. Do JSON baixado: `client_email` → `GOOGLE_SERVICE_ACCOUNT_EMAIL`; `private_key` → `GOOGLE_SERVICE_ACCOUNT_KEY` (inteira, com `-----BEGIN…`).
+3. Abra o JSON baixado no Bloco de Notas, copie TUDO e cole como `GOOGLE_SERVICE_ACCOUNT_JSON`.
 4. No Drive, compartilhe a pasta-mãe **"Audiovisual - Eventos"** com o `client_email` como **Leitor**.
 
 ### 4. Código e worker (GitHub)
 1. Repositório privado **be-story** com este código.
-2. Em *Settings → Secrets and variables → Actions*, cadastre: `DATABASE_URL`, `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_SERVICE_ACCOUNT_KEY` e, se usar e-mail, `RESEND_API_KEY` e `EMAIL_FROM`.
+2. Em *Settings → Secrets and variables → Actions*, cadastre: `DATABASE_URL`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `GOOGLE_SERVICE_ACCOUNT_JSON` e, se usar e-mail, `RESEND_API_KEY` e `EMAIL_FROM`.
 3. Crie um **token** (*Settings → Developer settings → Fine-grained tokens*) só para o repositório be-story, com permissão **Contents: Read and write**. Ele vai para a Netlify como `GITHUB_TOKEN`, para o painel acordar o worker na hora.
 
 ### 5. Site (Netlify)

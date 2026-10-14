@@ -8,9 +8,17 @@ let cached: drive_v3.Drive | null = null;
  *  basta compartilhar a pasta-mãe dos eventos com o e-mail da conta de serviço como "Leitor". */
 export function drive() {
   if (!cached) {
+    // Aceita o arquivo JSON inteiro da conta de serviço (GOOGLE_SERVICE_ACCOUNT_JSON) ou e-mail + chave separados
+    let email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    let key = process.env.GOOGLE_SERVICE_ACCOUNT_KEY || "";
+    if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+      const j = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+      email = j.client_email;
+      key = j.private_key;
+    }
     const auth = new JWT({
-      email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      key: (process.env.GOOGLE_SERVICE_ACCOUNT_KEY || "").replace(/\\n/g, "\n"),
+      email,
+      key: key.replace(/\\n/g, "\n"),
       scopes: ["https://www.googleapis.com/auth/drive.readonly"],
     });
     cached = driveApi({ version: "v3", auth });

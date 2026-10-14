@@ -1,3 +1,4 @@
+import { appSecret } from "./secret";
 /**
  * Armazenamento de mídia: Cloudflare R2 (produção) ou pasta local (desenvolvimento/testes).
  * Tudo é privado; o cliente só recebe URLs assinadas que expiram.
@@ -19,7 +20,7 @@ export const driver = () => (process.env.STORAGE_DRIVER || (process.env.R2_ACCOU
 const bucket = () => process.env.R2_BUCKET || "be-story-media";
 const ttl = () => Number(process.env.SIGNED_URL_TTL || 6 * 3600);
 const localRoot = () => path.resolve(process.env.STORAGE_LOCAL_DIR || ".media");
-const secret = () => process.env.SESSION_SECRET || "dev-only-secret-troque-em-producao-0000";
+const secret = () => appSecret();
 
 let s3: S3Client | null = null;
 export function r2() {

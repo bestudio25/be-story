@@ -154,7 +154,7 @@ function Trilha({ d, reload, toast }: Pick<Ctx, "d" | "reload" | "toast">) {
           <div className="text-xs text-white/60">{e.soundtrack_name || "Música enviada"}</div>
           <audio controls preload="none" src={e.soundtrack_url} className="w-full" />
         </div>
-      ) : <div className="text-xs text-white/40">Nenhuma música. Sem trilha, o ícone de som só toca o clique da câmera na abertura.</div>}
+      ) : <div className="text-xs text-white/40">Nenhuma música. Sem trilha, o site fica em silêncio e o ícone de som não aparece.</div>}
     </div>
   );
 }

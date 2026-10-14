@@ -36,17 +36,7 @@ const dateShort = d => { const [y,m,dd]=d.split('-'); return `${dd}.${m}.${y.sli
 let toastT; const toast = msg => { const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2600); };
 const vibrate = p => { try{ navigator.vibrate && navigator.vibrate(p); }catch{} };
 
-// ── Som (clique de câmera instantânea, sintetizado) ──
-let audioOn = false, actx;
-function shutter(){ if(!audioOn) return; try{
-  actx = actx || new (window.AudioContext||window.webkitAudioContext)();
-  const t=actx.currentTime, len=.35, buf=actx.createBuffer(1, actx.sampleRate*len, actx.sampleRate), d=buf.getChannelData(0);
-  for(let i=0;i<d.length;i++){ const p=i/d.length; d[i]=(Math.random()*2-1)*Math.pow(1-p,3)*(p<.08?1:.35); }
-  const s=actx.createBufferSource(); s.buffer=buf; const f=actx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=2400; f.Q.value=.8;
-  const g=actx.createGain(); g.gain.value=.5; s.connect(f).connect(g).connect(actx.destination); s.start(t);
-  const o=actx.createOscillator(), og=actx.createGain(); o.frequency.setValueAtTime(180,t+.12); o.frequency.exponentialRampToValueAtTime(60,t+1.1);
-  og.gain.setValueAtTime(.0001,t+.12); og.gain.exponentialRampToValueAtTime(.06,t+.2); og.gain.exponentialRampToValueAtTime(.0001,t+1.2); o.connect(og).connect(actx.destination); o.start(t+.12); o.stop(t+1.3);
-}catch{} }
+let audioOn = false;
 // ── Trilha sonora do evento (enviada no painel) ──
 const music = M('soundtrack') ? Object.assign(new Audio(M('soundtrack')), { loop:true, preload:'auto', volume:0 }) : null;
 let musicMuted = false, ducked = false, fadeT;
@@ -59,11 +49,10 @@ function syncSoundIcons(){ const on = music ? (!musicMuted) : audioOn;
 let audioOnTouched=false;
 function toggleSound(){
   audioOnTouched=true;
-  if(music){ musicMuted = !musicMuted; audioOn=!musicMuted; if(musicMuted) musicStop(); else { musicPlay(); shutter(); } }
-  else { audioOn=!audioOn; if(audioOn) shutter(); }
+  if(music){ musicMuted = !musicMuted; audioOn=!musicMuted; if(musicMuted) musicStop(); else musicPlay(); }
   syncSoundIcons();
 }
-$('#op-sound').addEventListener('click', toggleSound);
+if(music) $('#op-sound').addEventListener('click', toggleSound); else $('#op-sound').hidden=true;
 if(music){ const sb=$('#sound-btn'); sb.hidden=false; sb.addEventListener('click', toggleSound); musicMuted=true; syncSoundIcons();
   // vídeos do site pausam a trilha; ela volta quando o vídeo para
   const playing=new Set();
@@ -131,7 +120,7 @@ function startOpening(){
     pol.classList.remove('eject'); pol.style.opacity=0; pol.animate([{opacity:0},{opacity:1}],{duration:reduce?1:700,fill:'forwards'});
     progress=1; finishReveal(); if(revealed){ $('#op-skip').hidden=false; }
   } else {
-    shutter(); setTimeout(()=>{ last=performance.now(); requestAnimationFrame(tick); }, 1300);
+    setTimeout(()=>{ last=performance.now(); requestAnimationFrame(tick); }, 1300);
   }
 }
 $('#op-skip').addEventListener('click', ()=>enterSite(false));

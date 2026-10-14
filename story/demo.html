@@ -1091,7 +1091,7 @@ $('#note-form').addEventListener('submit',e=>{ e.preventDefault(); const name=$(
 // ═════════ ENCERRAMENTO ═════════
 const ref=EV.slug+'-'+Math.random().toString(36).slice(2,6);
 $('#refer').href=`https://wa.me/?text=${encodeURIComponent(`Olha que lindo o site de memórias que a BE Studio fez do nosso evento! Se você vai ter um evento, fala com eles: https://wa.me/?text=${encodeURIComponent('Oi, BE! Vim por indicação de '+EV.clientNames+' (código '+ref+') e quero saber sobre cobertura de stories.')}`)}`;
-$('#book').href=`https://wa.me/?text=${encodeURIComponent('Oi, BE! Quero agendar a cobertura do meu próximo evento.')}`;
+$('#book').href=`https://wa.me/5588994547613?text=${encodeURIComponent('Oi, BE! Quero agendar a cobertura do meu próximo evento.')}`;
 new IntersectionObserver((es,o)=>es.forEach(e=>{ if(e.isIntersecting){ fitHand($('#fim-hand')); $('#fim-hand').classList.add('write'); o.disconnect(); } }),{threshold:.6}).observe($('#fim-pol'));
 $('#restart').onclick=()=>{ store.set('revealed',false); location.hash=''; location.reload(); };
 

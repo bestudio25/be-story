@@ -1,7 +1,7 @@
 import { sql, hasDb } from "./db";
 import { signedUrl } from "./storage";
 
-export const BE_WHATSAPP = () => (process.env.NEXT_PUBLIC_BE_WHATSAPP || "").replace(/\D/g, "");
+export const BE_WHATSAPP = () => (process.env.NEXT_PUBLIC_BE_WHATSAPP || "5588994547613").replace(/\D/g, "");
 export const BE_INSTAGRAM = () => process.env.NEXT_PUBLIC_BE_INSTAGRAM || "bestudioaudiovisual";
 export const SITE_URL = () => (process.env.NEXT_PUBLIC_SITE_URL || "https://memorias.bestudiomkt.com.br").replace(/\/$/, "");
 

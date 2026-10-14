@@ -108,7 +108,19 @@ export async function syncEvent(eventId: string): Promise<SyncResult> {
       on conflict (event_id, drive_file_id) do update set size_bytes = excluded.size_bytes, is_reels = excluded.is_reels, original_name = excluded.original_name
       returning id, drive_file_id, is_reels` as unknown as { id: string; drive_file_id: string; is_reels: boolean }[]));
   }
-  const toQueue = saved.filter((r) => !prev.has(r.drive_file_id) || prev.get(r.drive_file_id) === "erro");
+  // arquivos em capítulos internos (e subcapítulos) não entram na fila
+  const chs = await db`select id, parent_id, is_internal from chapters where event_id = ${eventId}`;
+  const hidden = new Set<string>();
+  for (let changed = true; changed; ) {
+    changed = false;
+    for (const c of chs) if (!hidden.has(c.id) && (c.is_internal || (c.parent_id && hidden.has(c.parent_id)))) { hidden.add(c.id); changed = true; }
+  }
+  const chapterOf = new Map(rows.map((r) => [r.drive_file_id, r.chapter_id]));
+  const toQueue = saved.filter((r) => {
+    const ch = chapterOf.get(r.drive_file_id);
+    if (ch && hidden.has(ch)) return false;
+    return !prev.has(r.drive_file_id) || prev.get(r.drive_file_id) === "erro";
+  });
   const newFiles = saved.filter((r) => !prev.has(r.drive_file_id)).length;
   if (toQueue.length) {
     const ids = toQueue.map((r) => r.id);

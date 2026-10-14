@@ -1,6 +1,6 @@
 import { handle, json, body } from "@/lib/api";
 import { requireAdmin } from "@/lib/auth";
-import { sql } from "@/lib/db";
+import { sql, wakeWorker } from "@/lib/db";
 
 export const POST = handle(async (req: Request) => {
   await requireAdmin();
@@ -21,6 +21,18 @@ export const PATCH = handle(async (req: Request) => {
   if (set.parent_id === b.id) return json({ error: "Um capítulo não pode ficar dentro dele mesmo" }, 400);
   const db = sql();
   await db`update chapters set ${db(set as never)} where id = ${b.id}`;
+  if (b.is_internal === false) {
+    // capítulo voltou a ficar visível: processa o que ainda não foi processado
+    const ids = (await db`
+      with recursive sub as (select id from chapters where id = ${b.id} union all select c.id from chapters c join sub on c.parent_id = sub.id)
+      select f.id from files f where f.chapter_id in (select id from sub) and f.processing <> 'pronto'`).map((r) => r.id as string);
+    if (ids.length) {
+      await db`update files set processing = 'pendente', processing_error = null where id = any(${ids}::uuid[])`;
+      await db`insert into jobs (kind, payload) select 'process_file', json_build_object('fileId', x)::jsonb from unnest(${ids}::uuid[]) as x
+               where not exists (select 1 from jobs j where j.kind = 'process_file' and j.payload->>'fileId' = x::text and j.status in ('pendente','processando'))`;
+      await wakeWorker("capítulo visível");
+    }
+  }
   return json({ ok: true });
 });
 

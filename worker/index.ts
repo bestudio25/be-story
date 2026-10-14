@@ -121,10 +121,22 @@ async function fetchSource(f: FileRow, dir: string) {
   return { src, ext };
 }
 
+async function inInternalChapter(fileId: string) {
+  const [r] = await sql()`
+    with recursive up as (
+      select c.id, c.parent_id, c.is_internal from chapters c join files f on f.chapter_id = c.id where f.id = ${fileId}
+      union all
+      select c.id, c.parent_id, c.is_internal from chapters c join up on c.id = up.parent_id
+    ) select coalesce(bool_or(is_internal), false) as hidden from up`;
+  return !!r?.hidden;
+}
+
 async function processFile(fileId: string) {
   const db = sql();
   const [f] = (await db`select * from files where id = ${fileId}`) as unknown as FileRow[];
   if (!f) return;
+  // Capítulos internos (ex.: "Arquivos brutos") não são processados; se o capítulo voltar a ficar visível, o painel coloca na fila de novo.
+  if (await inInternalChapter(fileId)) return;
   await db`update files set processing = 'processando' where id = ${fileId}`;
   const dir = await fsp.mkdtemp(path.join(TMP, "f-"));
   try {

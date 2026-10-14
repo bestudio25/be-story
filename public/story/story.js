@@ -29,7 +29,8 @@ document.documentElement.style.setProperty('--paper', `url(${paper})`);
 // ── utilidades ──
 const fmtBytes = b => !b ? '' : b>=1e9 ? (b/1e9).toLocaleString('pt-BR',{maximumFractionDigits:1})+' GB' : b>=1e6 ? Math.round(b/1e6)+' MB' : Math.round(b/1e3)+' KB';
 const fmtDur = s => !s ? 'vídeo' : `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
-const fmtTime = iso => !iso ? '' : new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Fortaleza'});
+// Horários das fotos não são exibidos (vídeos exportados trazem a hora da exportação, não da gravação)
+const fmtTime = () => '';
 const dateLong = d => new Date(d+'T12:00:00-03:00').toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric'});
 const dateShort = d => { const [y,m,dd]=d.split('-'); return `${dd}.${m}.${y.slice(2)}`; };
 let toastT; const toast = msg => { const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2600); };

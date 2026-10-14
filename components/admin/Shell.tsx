@@ -8,6 +8,7 @@ export default function Shell({ email, children }: { email: string; children: Re
   const nav = [
     { href: "/admin", label: "Eventos" },
     { href: "/admin/armazenamento", label: "Armazenamento" },
+    { href: "/admin/conta", label: "Minha conta" },
   ];
   return (
     <div className="min-h-svh">

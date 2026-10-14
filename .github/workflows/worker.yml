@@ -44,7 +44,7 @@ jobs:
 
       - name: Instalar ffmpeg, exiftool e libheif
         if: steps.queue.outputs.pending != '0'
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg libimage-exiftool-perl libheif-examples >/dev/null
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg libimage-exiftool-perl libheif-examples >/dev/null && (sudo apt-get install -y -qq libheif-plugin-libde265 >/dev/null || true)
 
       - name: Instalar dependências
         if: steps.queue.outputs.pending != '0'

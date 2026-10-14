@@ -1,0 +1,21 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+[functions]
+  included_files = ["story/**", "og-fonts/**", "public/brand/be-logo-cream.png", "db/schema.sql"]
+
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    Access-Control-Allow-Origin = "*"
+
+[[headers]]
+  for = "/story/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"

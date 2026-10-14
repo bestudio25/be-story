@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Libre Baskerville", Georgia, serif;
+  --font-script: "Gentlemens Script", cursive;
+  --color-ink: #0b0b0b;
+  --color-panel: #151311;
+  --color-panel-2: #1d1a17;
+  --color-cream: #faf8f4;
+  --color-sand: #c9a77c;
+  --color-brown: #4c2a22;
+}
+
+html, body { background: #0f0d0b; color: #faf8f4; }
+body { font-family: var(--font-sans); font-weight: 300; -webkit-font-smoothing: antialiased; }
+::selection { background: #c9a77c; color: #20150c; }
+@utility field { @apply w-full rounded-xl border border-white/10 bg-ink px-3.5 py-2.5 text-[15px] text-cream outline-none transition focus:border-sand; }
+@utility label { @apply mb-1.5 block text-[11px] font-medium uppercase tracking-[.18em] text-white/50; }
+@utility btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition active:scale-[.98] disabled:opacity-40 disabled:pointer-events-none; }
+@utility btn-cream { @apply btn bg-cream text-[#20150c] hover:bg-white; }
+@utility btn-ghost { @apply btn border border-white/15 text-cream hover:bg-white/5; }
+@utility btn-danger { @apply btn border border-red-400/30 text-red-300 hover:bg-red-400/10; }
+@utility card { @apply rounded-2xl border border-white/10 bg-panel; }
+@utility eyebrow { @apply text-[11px] font-medium uppercase tracking-[.3em] text-sand; }
+@utility chip { @apply rounded-full border border-white/10 px-3 py-1 text-xs text-white/70; }

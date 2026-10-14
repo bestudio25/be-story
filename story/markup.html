@@ -1,0 +1,319 @@
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-9.2-8.6C1.2 8.2 3 4.8 6.4 4.5c2-.2 3.6.9 4.6 2.4h2c1-1.5 2.6-2.6 4.6-2.4 3.4.3 5.2 3.7 3.6 6.9C19 15.6 12 20 12 20z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.5v15l12.5-7.5z"/></symbol>
+    <symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 15V4m0 0L8 8m4-4l4 4M6 11H5a1 1 0 00-1 1v7a1 1 0 001 1h14a1 1 0 001-1v-7a1 1 0 00-1-1h-1"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9.5v5h3.5L12 19V5L7.5 9.5zM15.5 9a4 4 0 010 6M18 6.5a7.5 7.5 0 010 11"/></symbol>
+    <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9.5v5h3.5L12 19V5L7.5 9.5zM16 9.5l5 5m0-5l-5 5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 00-1-1H5a1 1 0 00-1 1v10a1 1 0 001 1h3"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 012-2h4l2 2h7a2 2 0 012 2v8a2 2 0 01-2 2h-13a2 2 0 01-2-2z"/></symbol>
+    <symbol id="i-cam" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2.5"/><circle cx="12" cy="13" r="3.6"/><path d="M8 6l1.5-2h5L16 6"/></symbol>
+    <symbol id="i-wa" viewBox="0 0 24 24"><path d="M4.5 19.5l1.2-3.9A7.9 7.9 0 1112 20a7.9 7.9 0 01-3.7-.9z"/><path d="M9.2 8.9c.3 2.6 2.4 4.9 5 5.5l1.1-1.2-1.6-.9-.8.6c-1-.5-1.8-1.3-2.3-2.3l.6-.8-.9-1.6z"/></symbol>
+  </defs>
+</svg>
+
+<!-- ═════════ ABERTURA POLAROID ═════════ -->
+<div id="opening" aria-label="Abertura">
+  <div class="lamp"></div>
+  <div class="grain"></div>
+  <div class="op-top">
+    <button class="round" id="op-sound" aria-label="Ativar som" aria-pressed="false"><svg class="icon"><use href="#i-mute"/></svg></button>
+  </div>
+  <div class="op-inner">
+    <img class="op-logo" src="" data-src="logo" alt="BE Studio">
+    <div class="op-stage">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:22px">
+        <div class="polaroid eject" id="pol" style="--rot:-2.5deg" role="img" aria-label="Foto Polaroid de Ana e Renato">
+          <div class="pol-photo" id="pol-photo">
+            <img id="pol-img" alt="" src="" data-src="polaroid">
+            <div class="pol-dev" id="pol-dev"></div>
+            <div class="pol-sheen"></div>
+          </div>
+          <div class="pol-caption">
+            <svg viewBox="0 0 340 90" aria-hidden="true"><text class="hand" id="pol-hand" x="170" y="47" text-anchor="middle"></text><text class="hand-date" id="pol-date" x="172" y="78" text-anchor="middle"></text></svg>
+          </div>
+        </div>
+        <div class="op-hint" id="op-hint" aria-live="polite">Toque ou balance para revelar<span class="bar"><i id="op-bar"></i></span></div>
+      </div>
+      <div class="op-letter" id="op-letter" aria-live="polite">
+        <div class="l title">Para guardar, lembrar e reviver. 🤎</div>
+        <p class="l">Um dia especial merece um lugar para ser lembrado.</p>
+        <p class="l">Por isso, reunimos aqui cada arquivo desse momento, com o mesmo cuidado que tivemos ao acompanhá-los durante o evento.</p>
+        <p class="l">Que este espaço seja uma pequena cápsula de memória, daquelas que a gente abre depois de um tempo e, por alguns minutos, consegue voltar exatamente para aquele dia.</p>
+        <p class="l">Foi muito especial fazer parte dele!</p>
+        <div class="l sign"><span class="sign-script">Com carinho,</span><span class="sign-brand">BE Studio</span></div>
+        <div class="op-actions l">
+          <button class="pill pill-cream" id="op-go">Ver nossa história <span aria-hidden="true">→</span></button>
+        </div>
+      </div>
+    </div>
+    <button class="pill pill-ghost pill-sm" id="op-skip" hidden>Pular abertura</button>
+  </div>
+</div>
+<div id="flip" hidden><img alt="" id="flip-img"></div>
+
+<!-- ═════════ BARRA FIXA ═════════ -->
+<header id="topbar">
+  <a class="brand" href="#hero" aria-label="Início"><img src="" data-src="logo" alt=""><span>BE Story</span></a>
+  <nav aria-label="Seções">
+    <a href="#capitulos">Capítulos</a><a href="#destaques">Destaques</a><a href="#galeria">Galeria</a><a href="#baixar">Baixar</a><a href="#compartilhar">Compartilhar</a>
+  </nav>
+  <div style="display:flex;gap:8px;align-items:center">
+    <button class="round" id="sound-btn" aria-label="Ativar trilha sonora" aria-pressed="false" hidden><svg class="icon"><use href="#i-mute"/></svg></button>
+    <button class="fav-pill" id="fav-jump" aria-label="Ver favoritos"><svg class="icon" style="width:15px;height:15px"><use href="#i-heart"/></svg><b id="fav-count">0</b></button>
+  </div>
+</header>
+
+<main id="site" aria-hidden="true">
+  <!-- HERO -->
+  <section id="hero">
+    <div class="bg" id="hero-bg"><img class="slide on" alt="" src="" data-src="cover"></div>
+    <canvas id="particles" aria-hidden="true"></canvas>
+    <div class="shade"></div>
+    <div class="hero-in">
+      <div class="eyebrow reveal-up">BE Story apresenta</div>
+      <h1 class="hero-names reveal-up" id="hero-names"></h1>
+      <div class="hero-meta reveal-up"><span id="hero-date"></span><span class="dot" aria-hidden="true">·</span><span id="hero-place"></span></div>
+      <div class="counter reveal-up" id="counter"></div>
+      <div class="hero-cta reveal-up">
+        <button class="pill pill-cream" id="watch-film"><svg class="icon" style="fill:currentColor;stroke:none"><use href="#i-play"/></svg>Assistir ao filme</button>
+        <a class="pill pill-ghost" href="#capitulos">Reviver o dia</a>
+      </div>
+    </div>
+    <div class="scroll-cue" aria-hidden="true"></div>
+  </section>
+
+  <!-- CAPÍTULOS -->
+  <section id="capitulos">
+    <div class="wrap">
+      <div class="sec-head sec-row">
+        <div class="reveal-up" style="display:flex;flex-direction:column;gap:12px">
+          <span class="eyebrow">A linha do tempo do dia</span>
+          <h2 class="h2">Capítulos de uma história</h2>
+        </div>
+        <div class="rail-ctrl">
+          <button class="round" data-rail="chap-rail" data-dir="-1" aria-label="Capítulo anterior"><svg class="icon"><use href="#i-left"/></svg></button>
+          <button class="round" data-rail="chap-rail" data-dir="1" aria-label="Próximo capítulo"><svg class="icon"><use href="#i-right"/></svg></button>
+        </div>
+      </div>
+      <div class="rail" id="chap-rail"></div>
+      <div class="progress-line"><i id="chap-prog"></i></div>
+    </div>
+  </section>
+
+  <!-- DESTAQUES -->
+  <section id="destaques" style="padding-top:40px">
+    <div class="wrap">
+      <div class="sec-head sec-row">
+        <div class="reveal-up" style="display:flex;flex-direction:column;gap:12px">
+          <span class="eyebrow">Escolhidos pela nossa equipe</span>
+          <h2 class="h2">Os momentos que a gente não esquece</h2>
+        </div>
+        <div class="rail-ctrl">
+          <button class="round" data-rail="hl-rail" data-dir="-1" aria-label="Anterior"><svg class="icon"><use href="#i-left"/></svg></button>
+          <button class="round" data-rail="hl-rail" data-dir="1" aria-label="Próximo"><svg class="icon"><use href="#i-right"/></svg></button>
+        </div>
+      </div>
+      <div class="rail" id="hl-rail" style="padding-top:14px"></div>
+    </div>
+  </section>
+
+  <!-- GALERIA -->
+  <section id="galeria" style="padding-top:40px">
+    <div class="wrap">
+      <div class="sec-head reveal-up">
+        <span class="eyebrow">Galeria completa</span>
+        <h2 class="h2">Cada arquivo, do primeiro ao último</h2>
+        <p class="lead" id="gal-lead"></p>
+      </div>
+      <div class="gal-tools">
+        <nav class="crumbs" id="crumbs" aria-label="Pastas"></nav>
+        <div class="chips" role="group" aria-label="Filtro">
+          <button class="chip" data-filter="all" aria-pressed="true">Tudo <small id="c-all"></small></button>
+          <button class="chip" data-filter="video" aria-pressed="false">Vídeos <small id="c-video"></small></button>
+          <button class="chip" data-filter="foto" aria-pressed="false">Fotos <small id="c-foto"></small></button>
+          <button class="chip" data-filter="fav" aria-pressed="false"><svg class="icon" style="width:13px;height:13px"><use href="#i-heart"/></svg>Favoritos <small id="c-fav"></small></button>
+        </div>
+        <div class="tool-row">
+          <label class="search"><svg class="icon" style="opacity:.6"><use href="#i-search"/></svg><span class="sr">Buscar</span><input id="q" type="search" placeholder="Buscar: votos, entrada, pista…"></label>
+          <select class="sort" id="sort" aria-label="Ordenação"><option value="asc">Horário ↑</option><option value="desc">Horário ↓</option></select>
+        </div>
+      </div>
+      <div class="subfolders" id="subfolders"></div>
+      <div class="grid" id="grid" aria-live="polite"></div>
+      <div id="sentinel"></div>
+      <div class="gal-foot" id="gal-foot"></div>
+    </div>
+  </section>
+
+  <!-- MURAL -->
+  <section id="mural" style="padding-top:40px">
+    <div class="wrap">
+      <div class="sec-head reveal-up" style="text-align:center;align-items:center">
+        <span class="eyebrow">Seus favoritos</span>
+        <h2 class="h2">O mural de vocês</h2>
+        <p class="lead">Toque no coração em qualquer foto ou vídeo e ela vem morar aqui.</p>
+      </div>
+      <div class="mural" id="mural-wall"></div>
+    </div>
+  </section>
+
+  <!-- DOWNLOADS -->
+  <section id="baixar">
+    <div class="wrap">
+      <div class="sec-head reveal-up">
+        <span class="eyebrow">Leve com você</span>
+        <h2 class="h2">Baixe tudo, em qualidade original</h2>
+        <p class="lead">Os arquivos originais ficam guardados com a gente. Escolha o que baixar e mostramos o tamanho antes de começar.</p>
+      </div>
+      <div class="dl-grid">
+        <div class="card dl-main reveal-up">
+          <div>
+            <div class="eyebrow" style="margin-bottom:14px">Todos os arquivos</div>
+            <div class="size" id="dl-total"></div>
+            <p class="lead" style="margin-top:10px;font-size:14px" id="dl-total-sub"></p>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:10px">
+            <button class="pill pill-cream" data-zip="all"><svg class="icon"><use href="#i-dl"/></svg>Baixar tudo</button>
+            <button class="pill pill-ghost" data-zip="fav"><svg class="icon"><use href="#i-heart"/></svg>Baixar favoritos</button>
+          </div>
+        </div>
+        <div class="card reveal-up">
+          <div class="eyebrow" style="margin-bottom:6px">Por capítulo</div>
+          <div class="dl-list" id="dl-list"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPARTILHAR -->
+  <section id="compartilhar">
+    <div class="wrap share">
+      <div class="phone reveal-up"><div class="notch"></div><div class="ig"><i></i><i></i><i></i></div><video id="story-video" muted loop playsinline autoplay preload="metadata" aria-label="Clipe 9:16 para stories"></video></div>
+      <div class="reveal-up" style="display:flex;flex-direction:column;gap:18px">
+        <span class="eyebrow">Feito para compartilhar</span>
+        <h2 class="h2">Um clipe pronto para os seus stories</h2>
+        <p class="lead">Editamos uma versão vertical especialmente para postar. É só baixar, compartilhar e marcar a gente.</p>
+        <div class="caption-box" id="caption"></div>
+        <div class="share-actions">
+          <button class="pill pill-cream" id="share-clip"><svg class="icon"><use href="#i-share"/></svg>Compartilhar clipe</button>
+          <button class="pill pill-ghost" id="copy-caption"><svg class="icon"><use href="#i-copy"/></svg>Copiar legenda</button>
+          <button class="pill pill-ghost" id="open-polgen"><svg class="icon"><use href="#i-cam"/></svg>Gerar minha Polaroid</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BILHETE -->
+  <section id="bilhete">
+    <div class="wrap">
+      <div class="sec-head reveal-up" style="text-align:center;align-items:center">
+        <span class="eyebrow">Bilhete de volta</span>
+        <h2 class="h2">Agora é a vez de vocês</h2>
+        <p class="lead">Conta pra gente como foi viver esse dia com a BE por perto. A gente lê cada palavra.</p>
+      </div>
+      <form class="note reveal-up" id="note-form">
+        <div id="note-fields">
+          <label for="n-name">Quem escreve</label>
+          <input type="text" id="n-name" required placeholder="Ana & Renato" autocomplete="name">
+          <label for="n-msg">Seu recado</label>
+          <div class="lines"><textarea id="n-msg" required placeholder="Querida BE…"></textarea></div>
+          <label style="margin-top:18px" id="stars-l">Sua avaliação</label>
+          <div class="stars" role="radiogroup" aria-labelledby="stars-l" id="stars"></div>
+          <label class="check"><input type="checkbox" id="n-pub"> Autorizo a BE Studio a publicar este recado (com nossos nomes) nas redes e no site.</label>
+          <button class="pill" type="submit">Enviar bilhete</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ENCERRAMENTO -->
+  <section id="fim">
+    <div class="wrap">
+      <div class="polaroid" id="fim-pol" role="img" aria-label="Última foto do evento">
+        <div class="pol-photo"><img alt="" src="" data-src="final"></div>
+        <div class="pol-caption"><svg viewBox="0 0 340 90" aria-hidden="true"><text class="hand" id="fim-hand" x="170" y="58" text-anchor="middle">Até a próxima história</text></svg></div>
+      </div>
+      <p class="fim-msg reveal-up">Obrigada por nos deixarem contar um pedacinho da história de vocês. Que este dia continue morando aqui, sempre que der saudade.</p>
+      <div class="fim-actions reveal-up">
+        <a class="pill pill-cream" id="refer" target="_blank" rel="noopener"><svg class="icon"><use href="#i-wa"/></svg>Indique a BE Studio</a>
+        <a class="pill pill-ghost" id="book" target="_blank" rel="noopener">Agende seu próximo evento</a>
+        <button class="pill pill-ghost" id="restart">Rever desde o começo</button>
+      </div>
+    </div>
+  </section>
+  <footer>
+    <img src="" data-src="logo" alt="BE Studio">
+    <div>BE Studio Audiovisual · <a id="footer-ig" href="https://instagram.com/bestudioaudiovisual" target="_blank" rel="noopener">@bestudioaudiovisual</a></div>
+    <div>Toda marca tem uma história. Nós ensinamos a contar.</div>
+  </footer>
+</main>
+
+<!-- ═════════ VISUALIZADOR ═════════ -->
+<div id="viewer" role="dialog" aria-modal="true" aria-label="Visualizador">
+  <div class="v-top">
+    <button class="round" id="v-close" aria-label="Fechar"><svg class="icon"><use href="#i-x"/></svg></button>
+    <div class="ct" id="v-count" aria-live="polite"></div>
+    <button class="round fav" id="v-fav" aria-label="Favoritar" aria-pressed="false"><svg class="icon"><use href="#i-heart"/></svg></button>
+  </div>
+  <div class="v-stage" id="v-stage">
+    <div class="v-track" id="v-track"></div>
+    <button class="round v-nav v-prev" id="v-prev" aria-label="Anterior"><svg class="icon"><use href="#i-left"/></svg></button>
+    <button class="round v-nav v-next" id="v-next" aria-label="Próximo"><svg class="icon"><use href="#i-right"/></svg></button>
+  </div>
+  <div class="v-bottom">
+    <div class="v-title"><h4 id="v-name"></h4><small id="v-meta"></small></div>
+    <div class="reacts" id="v-reacts" aria-label="Reações"></div>
+    <div class="v-actions">
+      <button class="pill pill-cream pill-sm" id="v-dl"><svg class="icon"><use href="#i-dl"/></svg><span>Baixar original</span></button>
+      <button class="pill pill-ghost pill-sm" id="v-dl-lite"><svg class="icon"><use href="#i-dl"/></svg>Versão leve</button>
+      <button class="pill pill-ghost pill-sm" id="v-share"><svg class="icon"><use href="#i-share"/></svg>Compartilhar</button>
+      <button class="pill pill-ghost pill-sm" id="v-pol"><svg class="icon"><use href="#i-cam"/></svg>Polaroid</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════ GERADOR DE POLAROID ═════════ -->
+<div id="polgen" role="dialog" aria-modal="true" aria-labelledby="pg-t">
+  <div class="pg-in">
+    <div style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:12px">
+      <div><span class="eyebrow">Gerar minha Polaroid</span><h3 class="h2" id="pg-t" style="font-size:28px">Pronta para postar</h3></div>
+      <button class="round" id="pg-close" aria-label="Fechar"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="pg-prev"><canvas id="pg-canvas" width="1080" height="1350"></canvas></div>
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div class="seg" role="group" aria-label="Formato"><button data-fmt="feed" aria-pressed="true">Feed 4:5</button><button data-fmt="story" aria-pressed="false">Stories 9:16</button></div>
+      <div><div class="eyebrow" style="margin-bottom:10px;color:var(--muted)">Escolha a foto</div><div class="pg-picks" id="pg-picks"></div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="pill pill-cream" id="pg-dl"><svg class="icon"><use href="#i-dl"/></svg>Baixar imagem</button><button class="pill pill-ghost" id="pg-share"><svg class="icon"><use href="#i-share"/></svg>Compartilhar</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ZIP modal -->
+<div class="modal" id="zip-modal" role="dialog" aria-modal="true" aria-labelledby="zip-t">
+  <form class="sheet" id="zip-form">
+    <h3 id="zip-t">Preparando seu download</h3>
+    <p id="zip-desc"></p>
+    <div class="zip-prog"><i id="zip-bar"></i></div>
+    <a class="pill pill-cream" id="zip-ready" hidden><svg class="icon"><use href="#i-dl"/></svg><span>Baixar ZIP</span></a>
+    <div id="zip-fields" style="display:flex;flex-direction:column;gap:14px">
+      <div class="field"><label for="zip-wa">WhatsApp para avisar quando estiver pronto</label><input id="zip-wa" type="tel" inputmode="tel" placeholder="(88) 9 9999-9999"></div>
+      <div class="field"><label for="zip-mail">ou e-mail</label><input id="zip-mail" type="email" placeholder="voce@email.com"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="pill pill-cream" type="submit">Me avise</button><button class="pill pill-ghost" type="button" data-close>Fechar</button></div>
+    </div>
+  </form>
+</div>
+
+<!-- Filme -->
+<div id="film" class="modal" style="background:#000;align-items:center" role="dialog" aria-modal="true" aria-label="Filme">
+  <button class="round" data-close style="position:absolute;top:14px;right:14px;z-index:2" aria-label="Fechar filme"><svg class="icon"><use href="#i-x"/></svg></button>
+  <video id="film-video" controls playsinline style="width:100%;max-height:100%"></video>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<div class="demo-tag" id="demo-tag">Demonstração</div>

@@ -135,6 +135,7 @@ export async function buildStoryData(ev: EventRow, visitorId: string | null, opt
       film: film?.web ?? film?.lite,
       story: reels?.lite ?? reels?.web,
       "story-poster": reels?.poster,
+      soundtrack: (await signedUrl(ev.soundtrack_key, { expires: 86400 })) ?? undefined,
     },
     links: { whatsapp: BE_WHATSAPP(), instagram: BE_INSTAGRAM(), site: SITE_URL() },
     favorites, reactions, preview: opts.preview,

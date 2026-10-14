@@ -39,6 +39,7 @@ export const keys = {
   derived: (ev: string, f: string, name: string) => `events/${ev}/web/${f}/${name}`,
   zip: (ev: string, id: string) => `events/${ev}/zips/${id}.zip`,
   upload: (ev: string, id: string, ext: string) => `events/${ev}/master/${id}${ext}`,
+  soundtrack: (ev: string, stamp: string, ext: string) => `events/${ev}/audio/trilha-${stamp}${ext}`,
 };
 
 // ── URLs assinadas ────────────────────────────────────────────────
@@ -219,4 +220,10 @@ export async function completeMultipart(key: string, uploadId: string, parts: { 
 export async function abortMultipart(key: string, uploadId: string) {
   if (driver() === "local") return fsp.rm(localPath(`.parts/${uploadId}`), { recursive: true, force: true });
   await r2().send(new AbortMultipartUploadCommand({ Bucket: bucket(), Key: key, UploadId: uploadId }));
+}
+
+/** URL assinada para o navegador enviar um arquivo direto ao R2 (PUT). */
+export async function signPut(key: string, contentType: string, expires = 900) {
+  if (driver() === "local") throw new Error("Envio direto só funciona com o R2");
+  return getSignedUrl(r2(), new PutObjectCommand({ Bucket: bucket(), Key: key, ContentType: contentType }), { expiresIn: expires });
 }

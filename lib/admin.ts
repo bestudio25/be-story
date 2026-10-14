@@ -28,7 +28,7 @@ export async function eventDetail(id: string) {
   );
   const { password_hash, ...rest } = ev;
   return {
-    event: { ...rest, has_password: !!password_hash, storage_bytes: Number(ev.storage_bytes), event_date: ev.event_date.toISOString().slice(0, 10) },
+    event: { ...rest, soundtrack_url: await signedUrl(ev.soundtrack_key), has_password: !!password_hash, storage_bytes: Number(ev.storage_bytes), event_date: ev.event_date.toISOString().slice(0, 10) },
     chapters, files: withUrls, notes,
     zips: zips.map((z) => ({ ...z, size_bytes: z.size_bytes ? Number(z.size_bytes) : null, zip_key: undefined, has_zip: !!z.zip_key })),
     processing: Object.fromEntries(counts.map((c) => [c.processing, c.n])),

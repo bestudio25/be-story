@@ -202,3 +202,6 @@ create table if not exists uploads (
   completed boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+-- ── Ajustes incrementais (idempotentes) ──────────────────────────
+alter table events add column if not exists soundtrack_name text;

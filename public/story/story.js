@@ -47,7 +47,32 @@ function shutter(){ if(!audioOn) return; try{
   const o=actx.createOscillator(), og=actx.createGain(); o.frequency.setValueAtTime(180,t+.12); o.frequency.exponentialRampToValueAtTime(60,t+1.1);
   og.gain.setValueAtTime(.0001,t+.12); og.gain.exponentialRampToValueAtTime(.06,t+.2); og.gain.exponentialRampToValueAtTime(.0001,t+1.2); o.connect(og).connect(actx.destination); o.start(t+.12); o.stop(t+1.3);
 }catch{} }
-$('#op-sound').addEventListener('click', e => { audioOn=!audioOn; const b=e.currentTarget; b.setAttribute('aria-pressed',audioOn); b.setAttribute('aria-label', audioOn?'Silenciar':'Ativar som'); b.querySelector('use').setAttribute('href', audioOn?'#i-sound':'#i-mute'); if(audioOn) shutter(); });
+// ── Trilha sonora do evento (enviada no painel) ──
+const music = M('soundtrack') ? Object.assign(new Audio(M('soundtrack')), { loop:true, preload:'auto', volume:0 }) : null;
+let musicMuted = false, ducked = false, fadeT;
+function fadeTo(v, ms=900){ if(!music) return; clearInterval(fadeT); const from=music.volume, t0=performance.now();
+  fadeT=setInterval(()=>{ const p=Math.min(1,(performance.now()-t0)/ms); music.volume=Math.max(0,Math.min(1,from+(v-from)*p)); if(p>=1){ clearInterval(fadeT); if(v===0) music.pause(); } },40); }
+function musicPlay(){ if(!music||musicMuted||ducked) return; music.play().then(()=>fadeTo(.55)).catch(()=>{}); }
+function musicStop(){ if(music && !music.paused) fadeTo(0,500); }
+function syncSoundIcons(){ const on = music ? (!musicMuted) : audioOn;
+  ['#op-sound','#sound-btn'].forEach(sel=>{ const b=$(sel); if(!b) return; b.setAttribute('aria-pressed',on); b.setAttribute('aria-label', on?'Silenciar':'Ativar som'); b.querySelector('use').setAttribute('href', on?'#i-sound':'#i-mute'); }); }
+let audioOnTouched=false;
+function toggleSound(){
+  audioOnTouched=true;
+  if(music){ musicMuted = !musicMuted; audioOn=!musicMuted; if(musicMuted) musicStop(); else { musicPlay(); shutter(); } }
+  else { audioOn=!audioOn; if(audioOn) shutter(); }
+  syncSoundIcons();
+}
+$('#op-sound').addEventListener('click', toggleSound);
+if(music){ const sb=$('#sound-btn'); sb.hidden=false; sb.addEventListener('click', toggleSound); musicMuted=true; syncSoundIcons();
+  // vídeos do site pausam a trilha; ela volta quando o vídeo para
+  const playing=new Set();
+  document.addEventListener('play', e=>{ if(e.target instanceof HTMLVideoElement && !e.target.muted){ playing.add(e.target); ducked=true; musicStop(); } }, true);
+  const off=e=>{ if(e.target instanceof HTMLVideoElement){ playing.delete(e.target); if(!playing.size){ ducked=false; setTimeout(musicPlay,300); } } };
+  document.addEventListener('pause', off, true); document.addEventListener('ended', off, true);
+  document.addEventListener('volumechange', e=>{ const v=e.target; if(v instanceof HTMLVideoElement && !v.paused){ if(v.muted) off({target:v}); else { playing.add(v); ducked=true; musicStop(); } } }, true);
+  document.addEventListener('visibilitychange', ()=>{ if(document.hidden) musicStop(); else musicPlay(); });
+}
 
 // ═════════ ABERTURA POLAROID ═════════
 const pol=$('#pol'), polImg=$('#pol-img'), dev=$('#pol-dev'), hand=$('#pol-hand');
@@ -113,6 +138,8 @@ $('#op-skip').addEventListener('click', ()=>enterSite(false));
 $('#op-go').addEventListener('click', ()=>enterSite(true));
 
 function enterSite(animate){
+  // entrar na história é um toque do visitante: a trilha começa aqui (se ele não silenciou)
+  if(music && !(musicMuted && audioOnTouched)){ musicMuted=false; audioOn=true; musicPlay(); syncSoundIcons(); }
   const op=$('#opening');
   const go = () => { op.classList.add('gone'); document.body.classList.remove('lock'); $('#site').removeAttribute('aria-hidden'); setTimeout(()=>op.hidden=true,900); startHero(); };
   if(!animate || reduce){ go(); return; }

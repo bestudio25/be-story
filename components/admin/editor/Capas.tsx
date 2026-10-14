@@ -1,11 +1,12 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { api } from "../api";
 import type { Ctx, FileItem } from "./types";
 
 type Slot = "polaroid_file_id" | "cover_file_id" | "final_file_id";
 
 /** Escolha das imagens-chave: Polaroid da abertura, capa (1ª foto do hero), Polaroid final, fotos que passam no hero, Reels e filme. */
-export default function Capas({ d, patchEvent }: Ctx) {
+export default function Capas({ d, patchEvent, reload, toast }: Ctx) {
   const photos = d.files.filter((f) => f.kind === "foto" && f.processing === "pronto");
   const videos = d.files.filter((f) => f.kind === "video" && f.processing === "pronto");
   const [pick, setPick] = useState<null | { slot: Slot | "hero" | "reels_file_id" | "film_file_id" }>(null);
@@ -65,6 +66,8 @@ export default function Capas({ d, patchEvent }: Ctx) {
         })}
       </div>
 
+      <Trilha d={d} reload={reload} toast={toast} />
+
       {pick && (
         <Picker
           title={pick.slot === "hero" ? "Fotos do fundo (na ordem em que clicar)" : pick.slot.includes("reels") || pick.slot.includes("film") ? "Escolha o vídeo" : "Escolha a foto"}
@@ -108,6 +111,50 @@ function Picker({ title, items, multi, initial, onClose, onSave }: { title: stri
           <button className="btn-cream" onClick={() => onSave(sel)}>Salvar</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function Trilha({ d, reload, toast }: Pick<Ctx, "d" | "reload" | "toast">) {
+  const e = d.event;
+  const input = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState<string>("");
+  const send = async (file: File) => {
+    try {
+      const type = file.type || (/\.m4a$/i.test(file.name) ? "audio/mp4" : "audio/mpeg");
+      setBusy("Preparando…");
+      const { key, url } = await api<{ key: string; url: string }>(`/api/admin/events/${e.id}/soundtrack`, { body: { contentType: type, size: file.size } });
+      await new Promise<void>((ok, fail) => {
+        const x = new XMLHttpRequest();
+        x.open("PUT", url); x.setRequestHeader("Content-Type", type);
+        x.upload.onprogress = (p) => p.lengthComputable && setBusy(`Enviando… ${Math.round((p.loaded / p.total) * 100)}%`);
+        x.onload = () => (x.status < 300 ? ok() : fail(new Error("Falha no envio (" + x.status + ")")));
+        x.onerror = () => fail(new Error("Falha no envio. Verifique a internet."));
+        x.send(file);
+      });
+      await api(`/api/admin/events/${e.id}/soundtrack`, { method: "PUT", body: { key, name: file.name } });
+      await reload(); toast("Música salva");
+    } catch (err) { toast((err as Error).message); } finally { setBusy(""); if (input.current) input.current.value = ""; }
+  };
+  return (
+    <div className="card space-y-3 p-5">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <div className="font-medium">Trilha sonora</div>
+          <div className="text-xs text-white/50">Toca de fundo quando o cliente abre a história (ele pode pausar no ícone de som). Pausa sozinha quando um vídeo toca. MP3 ou M4A, até 40 MB.</div>
+        </div>
+        <div className="flex gap-2">
+          <button className="btn-ghost" disabled={!!busy} onClick={() => input.current?.click()}>{busy || (e.soundtrack_key ? "Trocar música" : "Enviar música")}</button>
+          {e.soundtrack_key && !busy && <button className="chip" onClick={async () => { await api(`/api/admin/events/${e.id}/soundtrack`, { method: "DELETE" }); await reload(); toast("Música removida"); }}>Remover</button>}
+        </div>
+      </div>
+      <input ref={input} type="file" accept="audio/*,.mp3,.m4a" hidden onChange={(ev) => { const f = ev.target.files?.[0]; if (f) send(f); }} />
+      {e.soundtrack_url ? (
+        <div className="space-y-1">
+          <div className="text-xs text-white/60">{e.soundtrack_name || "Música enviada"}</div>
+          <audio controls preload="none" src={e.soundtrack_url} className="w-full" />
+        </div>
+      ) : <div className="text-xs text-white/40">Nenhuma música. Sem trilha, o ícone de som só toca o clique da câmera na abertura.</div>}
     </div>
   );
 }

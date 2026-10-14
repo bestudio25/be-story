@@ -7,10 +7,22 @@ declare global {
 
 export const hasDb = () => !!process.env.DATABASE_URL;
 
+/** Remove parâmetros só do libpq (ex.: channel_binding do Neon), que o postgres.js repassaria ao servidor. */
+export function cleanDbUrl(raw: string) {
+  const s = raw.trim().replace(/^psql\s+/, "").replace(/^['"]|['"]$/g, "");
+  try {
+    const u = new URL(s);
+    for (const k of ["channel_binding", "gssencmode", "sslcert", "sslkey"]) u.searchParams.delete(k);
+    return u.toString();
+  } catch {
+    return s;
+  }
+}
+
 export function sql() {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL não configurada");
   if (!global.__sql) {
-    global.__sql = postgres(process.env.DATABASE_URL, {
+    global.__sql = postgres(cleanDbUrl(process.env.DATABASE_URL), {
       max: Number(process.env.DB_POOL || 5),
       idle_timeout: 20,
       prepare: false, // compatível com pooler do Neon/Supabase

@@ -4,9 +4,17 @@ import { sql } from "@/lib/db";
 import { hashPassword, sign, ADMIN_COOKIE } from "@/lib/auth";
 
 /** Primeiro acesso ou "esqueci a senha": com o SETUP_TOKEN, cria a conta da BE ou redefine a senha desse e-mail. */
+const tries = new Map<string, { n: number; t: number }>();
+
 export const POST = handle(async (req: Request) => {
+  const ip = req.headers.get("x-nf-client-connection-ip") || req.headers.get("x-forwarded-for") || "?";
+  const t = tries.get(ip);
+  if (t && t.n >= 5 && Date.now() - t.t < 30 * 60_000) return json({ error: "Muitas tentativas. Aguarde 30 minutos." }, 429);
   const b = await body<{ token?: string; email?: string; name?: string; password?: string }>(req);
-  if (!process.env.SETUP_TOKEN || b.token !== process.env.SETUP_TOKEN) return json({ error: "Link de configuração inválido" }, 403);
+  if (!process.env.SETUP_TOKEN || b.token !== process.env.SETUP_TOKEN) {
+    tries.set(ip, { n: (t?.n ?? 0) + 1, t: Date.now() });
+    return json({ error: "Link de configuração inválido" }, 403);
+  }
   const email = (b.email ?? "").trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: "E-mail inválido" }, 400);
   if ((b.password ?? "").length < 10) return json({ error: "A senha precisa ter pelo menos 10 caracteres" }, 400);

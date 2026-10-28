@@ -377,3 +377,7 @@ footer a{text-decoration:none}
 .raw-step-box ul,.raw-step-box ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:7px;font-size:14px;line-height:1.5;color:var(--cream)}
 .raw-step-box b{font-weight:600}
 .raw-actions{display:flex;flex-wrap:wrap;gap:10px}
+.modal-center{align-items:center;padding:16px}
+.modal-center .sheet{border-radius:20px;max-width:540px;max-height:88svh;padding:24px 20px}
+.raw-count{margin:0;font-size:14px;color:var(--cream)}
+.raw-count b{color:var(--accent);font-weight:600}

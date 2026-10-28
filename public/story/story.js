@@ -364,13 +364,13 @@ if (RAW.length) {
   const sz = sRaw ? fmtBytes(sRaw) : '';
   $('#raw-guide').innerHTML = `
     <div class="raw-step-box"><h4>Antes de começar</h4><ul>
-      <li>Use um <b>computador</b>. No celular, o Drive não baixa a pasta inteira.</li>
-      <li>Deixe ${sz?`pelo menos <b>${sz}</b>`:'bastante espaço'} livre no computador (ou no HD externo).</li>
+      <li>Use um <b>computador</b>. No celular, o Drive pode não baixar a pasta inteira.</li>
+      <li>Deixe ${sz?`<b>${sz}</b>`:'espaço'} livres no computador ou no Drive (ou no HD externo).</li>
       <li>Use uma internet estável e deixe a página aberta até o fim.</li>
     </ul></div>
     <div class="raw-step-box"><h4>Passo a passo</h4><ol>
-      <li>Clique em <b>“Abrir pasta no Drive”</b>, aqui embaixo.</li>
-      <li>No Drive, clique em <b>“Fazer download de tudo”</b>, no canto superior direito. Se não aparecer, clique no nome da pasta, no topo, e depois em <b>“Fazer download”</b>.</li>
+      <li>Clique no botão <b>“Abrir pasta no Drive”</b>.</li>
+      <li>No Drive, clique em <b>“Fazer download de tudo”</b>, no canto superior direito. Se não aparecer, clique no nome da pasta, no topo, e depois em <b>“Fazer download”</b> ou <b>“Baixar”</b>.</li>
       <li>O Drive mostra <b>“Preparando o download”</b> no canto da tela. Pode levar alguns minutos. Não feche a aba.</li>
       <li>Se o navegador perguntar se pode baixar vários arquivos, clique em <b>“Permitir”</b>.</li>
       <li>Os arquivos chegam em <b>várias partes .zip</b> (de até 2 GB cada), com final -001, -002, -003… Baixe todas.</li>
@@ -379,10 +379,14 @@ if (RAW.length) {
     <div class="raw-step-box"><h4>Para não faltar nenhum arquivo</h4><ul>
       <li>Confira se a numeração das partes está em sequência, sem pular nenhuma.</li>
       <li>Extraia todas as partes <b>na mesma pasta</b>: no Windows, botão direito → “Extrair tudo”; no Mac, clique duas vezes.</li>
-      <li>No final, a pasta deve ter <b>${nRaw} arquivos</b>. Se faltar algum, volte ao Drive e baixe só ele (botão direito no arquivo → “Fazer download”).</li>
+      <li>No final, a pasta deve ter o número de arquivos sinalizado no início (<b>${nRaw} arquivos</b>). Se faltar algum, volte ao Drive e baixe só ele (botão direito no arquivo → “Fazer download”).</li>
       <li>Guarde uma cópia em um HD externo ou na nuvem.</li>
     </ul></div>`;
-  $('#raw-actions').innerHTML = RAW.filter(r=>r.folder).map(r=>`<a class="pill pill-cream" href="${esc(r.folder)}" target="_blank" rel="noopener"><svg class="icon"><use href="#i-dl"/></svg>Abrir pasta no Drive${RAW.length>1?' · '+esc(r.name):''}</a>`).join('');
+  $('#raw-count').innerHTML = `Esta pasta tem <b>${nRaw} arquivos</b>${sz?` · ${sz}`:''}.`;
+  const folderBtns = (cls)=>RAW.filter(r=>r.folder).map(r=>`<a class="pill ${cls}" href="${esc(r.folder)}" target="_blank" rel="noopener"><svg class="icon"><use href="#i-dl"/></svg>Abrir pasta no Drive${RAW.length>1?' · '+esc(r.name):''}</a>`).join('');
+  $('#raw-folder-btn').outerHTML = `<span id="raw-folder-btn" style="display:contents">${folderBtns('pill-cream')}</span>`;
+  $('#raw-folder-btn').addEventListener('click', e=>{ if(e.target.closest('a')) track('raw_folder'); });
+  $('#raw-actions').innerHTML = folderBtns('pill-cream');
   $('#raw-actions').addEventListener('click', e=>{ if(e.target.closest('a')) track('raw_folder'); });
   $('#raw-open').addEventListener('click', ()=>openModal('#raw-modal'));
 }

@@ -107,7 +107,8 @@ export async function syncEvent(eventId: string): Promise<SyncResult> {
     const chunk = rows.slice(i, i + 400);
     saved.push(...(await db`
       insert into files ${db(chunk as never)}
-      on conflict (event_id, drive_file_id) do update set size_bytes = excluded.size_bytes, is_reels = excluded.is_reels, original_name = excluded.original_name
+      on conflict (event_id, drive_file_id) do update set size_bytes = excluded.size_bytes, original_name = excluded.original_name,
+        is_reels = case when files.chapter_id is null then excluded.is_reels else files.is_reels end
       returning id, drive_file_id, is_reels` as unknown as { id: string; drive_file_id: string; is_reels: boolean }[]));
   }
   // arquivos em capítulos internos (e subcapítulos) não entram na fila

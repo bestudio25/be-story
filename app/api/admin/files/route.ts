@@ -10,7 +10,10 @@ export const PATCH = handle(async (req: Request) => {
   if (!ids.length) return json({ error: "Selecione arquivos" }, 400);
   const db = sql();
   if ("chapterId" in b) {
-    await db`update files set chapter_id = ${b.chapterId ?? null} where id = any(${ids}::uuid[])`;
+    // um Reels movido para um capítulo vira vídeo normal da galeria
+    await db`update files set chapter_id = ${b.chapterId ?? null}, is_reels = case when ${b.chapterId ?? null}::uuid is null then is_reels else false end where id = any(${ids}::uuid[])`;
+    if (b.chapterId) await db`update events set reels_file_id = null where reels_file_id = any(${ids}::uuid[])`;
+    if (b.chapterId) await db`update events set film_file_id = null where film_file_id = any(${ids}::uuid[])`;
     const [ev] = await db`select event_id from files where id = ${ids[0]}`;
     if (ev) await db`update events set manual_order = true where id = ${ev.event_id}`;
   }

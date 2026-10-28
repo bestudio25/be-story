@@ -36,8 +36,12 @@ export default function EventEditor({ id }: { id: string }) {
 
   if (!d) return <p className="text-white/50">{err || "Carregando…"}</p>;
   const ctx: Ctx = { d, reload, patchEvent, toast };
-  const total = d.files.filter((f) => !f.is_reels).length;
-  const ready = d.files.filter((f) => f.processing === "pronto" && !f.is_reels).length;
+  // arquivos de capítulos escondidos ou de brutos (ficam no Drive) não entram na contagem
+  const hiddenCh = new Set(d.chapters.filter((c) => c.is_internal || c.is_raw).map((c) => c.id));
+  for (let grew = true; grew; ) { grew = false; for (const c of d.chapters) if (c.parent_id && hiddenCh.has(c.parent_id) && !hiddenCh.has(c.id)) { hiddenCh.add(c.id); grew = true; } }
+  const counted = d.files.filter((f) => !f.is_reels && !(f.chapter_id && hiddenCh.has(f.chapter_id)));
+  const total = counted.length;
+  const ready = counted.filter((f) => f.processing === "pronto").length;
 
   return (
     <div className="space-y-6">

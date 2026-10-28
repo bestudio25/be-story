@@ -12,7 +12,8 @@ export async function eventDetail(id: string) {
        from files where event_id = ${id} order by position, original_name`,
     db`select * from notes where event_id = ${id} order by created_at desc`,
     db`select id, label, status, progress, size_bytes, notify_email, notify_phone, notified_at, created_at, ready_at, zip_key from zip_requests where event_id = ${id} order by created_at desc limit 50`,
-    db`select processing, count(*)::int n from files where event_id = ${id} group by processing`,
+    db`with recursive h as (select c.id from chapters c where c.event_id = ${id} and (c.is_internal or c.is_raw) union select c.id from chapters c join h on c.parent_id = h.id)
+        select processing, count(*)::int n from files where event_id = ${id} and (chapter_id is null or chapter_id not in (select id from h)) group by processing`,
   ]);
   const withUrls = await Promise.all(
     files.map(async (f) => ({

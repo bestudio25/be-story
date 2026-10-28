@@ -13,9 +13,9 @@ export const GET = handle(async () => {
   const rows = await db`
     select e.id, e.slug, e.title, e.client_names, e.event_type, e.event_date, e.status, e.expires_at, e.storage_bytes, e.created_at,
            e.cover_file_id, e.password_hash is not null as has_password,
-           (select count(*)::int from files f where f.event_id = e.id and not f.is_reels) as files,
-           (select count(*)::int from files f where f.event_id = e.id and f.processing = 'pronto') as ready,
-           (select count(*)::int from files f where f.event_id = e.id and f.processing = 'erro') as errors,
+           (with recursive h as (select c.id from chapters c where c.event_id = e.id and (c.is_internal or c.is_raw) union select c.id from chapters c join h on c.parent_id = h.id) select count(*)::int from files f where f.event_id = e.id and not f.is_reels and (f.chapter_id is null or f.chapter_id not in (select id from h))) as files,
+           (with recursive h as (select c.id from chapters c where c.event_id = e.id and (c.is_internal or c.is_raw) union select c.id from chapters c join h on c.parent_id = h.id) select count(*)::int from files f where f.event_id = e.id and f.processing = 'pronto' and not f.is_reels and (f.chapter_id is null or f.chapter_id not in (select id from h))) as ready,
+           (with recursive h as (select c.id from chapters c where c.event_id = e.id and (c.is_internal or c.is_raw) union select c.id from chapters c join h on c.parent_id = h.id) select count(*)::int from files f where f.event_id = e.id and f.processing = 'erro' and (f.chapter_id is null or f.chapter_id not in (select id from h))) as errors,
            (select count(distinct visitor_id)::int from analytics a where a.event_id = e.id and a.kind = 'open') as visitors,
            (select count(*)::int from analytics a where a.event_id = e.id and a.kind = 'open') as opens,
            (select thumb_key from files f where f.id = coalesce(e.cover_file_id, e.polaroid_file_id)

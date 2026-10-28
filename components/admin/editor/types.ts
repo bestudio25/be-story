@@ -1,4 +1,4 @@
-export type Chapter = { id: string; parent_id: string | null; name: string; position: number; description: string | null; is_internal: boolean; cover_file_id: string | null; icon: string; drive_path: string | null };
+export type Chapter = { id: string; parent_id: string | null; name: string; position: number; description: string | null; is_internal: boolean; is_raw: boolean; cover_file_id: string | null; icon: string; drive_path: string | null };
 export type FileItem = {
   id: string; chapter_id: string | null; kind: "video" | "foto"; original_name: string; display_name: string; position: number; size_bytes: number;
   width: number | null; height: number | null; duration_sec: number | null; poster_time_sec: number | null; recorded_at: string | null; recorded_at_known: boolean;

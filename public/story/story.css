@@ -10,8 +10,9 @@
   --r:18px;
 }
 /* Temas escolhidos no painel */
-[data-theme="sepia"]{--fg-rgb:243 230 211; --bg-rgb:35 26 19; --bg:#231a13; --page:#231a13; --bg-open:#1c140e; --surface:#2d2219; --surface-2:#382a1f; --on-cream:#2a1d12}
-[data-theme="editorial-claro"]{--fg-rgb:36 28 22; --bg-rgb:244 239 230; --bg:#f4efe6; --page:#f4efe6; --bg-open:#ece4d6; --surface:#ebe3d6; --surface-2:#e2d8c8; --on-cream:#f7f2ea; --accent-ink:#fff}
+[data-theme="sepia"]{--fg-rgb:250 244 234; --bg-rgb:32 21 12; --bg:#20150c; --page:#20150c; --bg-open:#1a1009; --surface:#2b1d12; --surface-2:#36261a; --on-cream:#20150c}
+[data-theme="editorial-claro"]{--fg-rgb:32 21 12; --bg-rgb:243 237 227; --bg:#f3ede3; --page:#f3ede3; --bg-open:#eee0d4; --surface:#eae1d3; --surface-2:#e2d6c6; --on-cream:#f7f2ea; --accent-ink:#fff}
+[data-theme="creme"]{--fg-rgb:76 42 34; --bg-rgb:250 244 234; --bg:#faf4ea; --page:#faf4ea; --bg-open:#f3ede3; --surface:#f3ede3; --surface-2:#eee0d4; --on-cream:#faf4ea; --accent-ink:#fff}
 [data-theme="minimal"]{--fg-rgb:20 20 20; --bg-rgb:255 255 255; --bg:#ffffff; --page:#ffffff; --bg-open:#f3f1ee; --surface:#f4f4f2; --surface-2:#ebebe8; --on-cream:#ffffff; --accent-ink:#fff}
 /* Sobre fotos e no visualizador o texto continua claro em qualquer tema */
 #hero,#viewer,#polgen,#film,.phone,.demo-tag{color:rgb(250 248 244);--fg-rgb:250 248 244; --bg-rgb:11 11 11; --cream:rgb(250 248 244); --on-cream:#20150c; --muted:rgb(250 248 244 / .62); --faint:rgb(250 248 244 / .38); --line:rgb(250 248 244 / .1); --surface:#151311; --surface-2:#1d1a17}
@@ -264,7 +265,9 @@ select.sort{flex:none;appearance:none;-webkit-appearance:none;background:var(--s
 .dl-grid{display:grid;gap:12px}
 @media(min-width:800px){.dl-grid{grid-template-columns:1.1fr 1fr}}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px}
-.dl-main{display:flex;flex-direction:column;gap:16px;justify-content:space-between;background:linear-gradient(160deg,#211b16,#141210);position:relative;overflow:hidden}
+.dl-main{display:flex;flex-direction:column;gap:16px;justify-content:space-between;background:linear-gradient(160deg,#211b16,#141210);position:relative;overflow:hidden;
+  /* card escuro: texto claro em qualquer tema */
+  color:rgb(250 248 244);--fg-rgb:250 248 244;--cream:rgb(250 248 244);--muted:rgb(250 248 244 / .62);--faint:rgb(250 248 244 / .38);--line:rgb(250 248 244 / .1);--on-cream:#20150c}
 .dl-main .size{font-family:var(--serif);font-size:44px;line-height:1}
 .dl-main .size small{font-family:var(--sans);font-size:14px;color:var(--muted);margin-left:6px}
 .dl-list{display:flex;flex-direction:column}
@@ -355,4 +358,15 @@ footer a{text-decoration:none}
 }
 
 /* Logo escuro nos temas claros */
-[data-theme="editorial-claro"] :is(#topbar .brand img,footer img,.op-logo,#gate img),[data-theme="minimal"] :is(#topbar .brand img,footer img,.op-logo,#gate img){filter:brightness(0);opacity:.8}
+[data-theme="editorial-claro"] :is(#topbar .brand img,footer img,.op-logo,#gate img),[data-theme="minimal"] :is(#topbar .brand img,footer img,.op-logo,#gate img),[data-theme="creme"] :is(#topbar .brand img,footer img,.op-logo,#gate img){filter:brightness(0);opacity:.8}
+
+/* Arquivos brutos (download direto do Drive) */
+.raw-card{margin-top:12px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
+.raw-sheet{max-width:560px;max-height:86svh}
+.raw-list{overflow:auto;margin:0 -6px;padding:0 6px;-webkit-overflow-scrolling:touch}
+.raw-list h4{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--faint);font-weight:500;margin:16px 0 4px}
+.raw-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px;color:var(--cream);text-decoration:none}
+.raw-row:last-child{border:0}
+.raw-row span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.raw-row small{color:var(--faint);font-size:12px;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.raw-row small .icon{width:15px;height:15px;color:var(--accent)}

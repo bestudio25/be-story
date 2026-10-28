@@ -10,6 +10,8 @@ import { sql } from "./db";
 import { readFolderTree, REELS_PATTERN, type DriveTree, type DriveNode } from "./drive";
 
 const VIDEO_EXT = /\.(mov|mp4|m4v|avi|mts|mkv|webm|3gp)$/i;
+/** Pasta de arquivos brutos (ex.: "02. Arquivos brutos"): fica no Drive, o cliente baixa direto de lá. */
+export const RAW_PATTERN = /brut/i;
 const PHOTO_EXT = /\.(jpe?g|png|heic|heif|webp|tiff?|dng)$/i;
 
 /** "01. Making of" → "Making of"; "02.Arquivos brutos" → "Arquivos brutos" */
@@ -81,8 +83,8 @@ export async function syncEvent(eventId: string): Promise<SyncResult> {
     const position = posByParent.get(pk) ?? 0;
     posByParent.set(pk, position + 1);
     const [row] = await db`
-      insert into chapters (event_id, parent_id, name, position, drive_folder_id, drive_path)
-      values (${eventId}, ${parentId}, ${cleanFolderName(f.name)}, ${position}, ${f.id}, ${f.path.join("/")})
+      insert into chapters (event_id, parent_id, name, position, drive_folder_id, drive_path, is_raw)
+      values (${eventId}, ${parentId}, ${cleanFolderName(f.name)}, ${position}, ${f.id}, ${f.path.join("/")}, ${f.path.length === 1 && RAW_PATTERN.test(f.name)})
       on conflict (event_id, drive_folder_id) do update set drive_path = excluded.drive_path
       returning id`;
     folderIds.set(f.path.join("/"), row.id);
@@ -109,11 +111,11 @@ export async function syncEvent(eventId: string): Promise<SyncResult> {
       returning id, drive_file_id, is_reels` as unknown as { id: string; drive_file_id: string; is_reels: boolean }[]));
   }
   // arquivos em capítulos internos (e subcapítulos) não entram na fila
-  const chs = await db`select id, parent_id, is_internal from chapters where event_id = ${eventId}`;
+  const chs = await db`select id, parent_id, is_internal, is_raw from chapters where event_id = ${eventId}`;
   const hidden = new Set<string>();
   for (let changed = true; changed; ) {
     changed = false;
-    for (const c of chs) if (!hidden.has(c.id) && (c.is_internal || (c.parent_id && hidden.has(c.parent_id)))) { hidden.add(c.id); changed = true; }
+    for (const c of chs) if (!hidden.has(c.id) && (c.is_internal || c.is_raw || (c.parent_id && hidden.has(c.parent_id)))) { hidden.add(c.id); changed = true; }
   }
   const chapterOf = new Map(rows.map((r) => [r.drive_file_id, r.chapter_id]));
   const toQueue = saved.filter((r) => {

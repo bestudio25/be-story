@@ -2,7 +2,7 @@ import { accessibleEvent } from "@/lib/client-access";
 import { handle, json, body } from "@/lib/api";
 import { track } from "@/lib/db";
 
-const KINDS = new Set(["open", "reveal", "view", "watch", "share", "film"]);
+const KINDS = new Set(["open", "reveal", "view", "watch", "share", "film", "raw_download", "raw_folder"]);
 
 export const POST = handle(async (req: Request, { params }: { params: Promise<{ slug: string }> }) => {
   const { slug } = await params;

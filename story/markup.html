@@ -188,6 +188,16 @@
           <div class="dl-list" id="dl-list"></div>
         </div>
       </div>
+      <div class="card raw-card reveal-up" id="raw-card" hidden>
+        <div>
+          <div class="eyebrow" style="margin-bottom:10px">Arquivos brutos</div>
+          <p class="lead" style="font-size:14px" id="raw-sub"></p>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+          <button class="pill pill-cream" id="raw-open"><svg class="icon"><use href="#i-dl"/></svg>Ver e baixar arquivos</button>
+          <a class="pill pill-ghost" id="raw-folder" target="_blank" rel="noopener" hidden>Baixar a pasta inteira</a>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -307,6 +317,17 @@
       <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="pill pill-cream" type="submit">Me avise</button><button class="pill pill-ghost" type="button" data-close>Fechar</button></div>
     </div>
   </form>
+</div>
+
+<div class="modal" id="raw-modal" role="dialog" aria-modal="true" aria-labelledby="raw-t">
+  <div class="sheet raw-sheet">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <h3 id="raw-t">Arquivos brutos</h3>
+      <button class="round" data-close aria-label="Fechar"><svg class="icon"><use href="#i-x"/></svg></button>
+    </div>
+    <p id="raw-desc">Os arquivos sem edição, em qualidade original. Toque em um arquivo para baixar.</p>
+    <div class="raw-list" id="raw-list"></div>
+  </div>
 </div>
 
 <!-- Filme -->

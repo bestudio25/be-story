@@ -2,16 +2,10 @@
 import { useState } from "react";
 import { api } from "../api";
 import type { Ctx } from "./types";
+import Aparencia from "./Aparencia";
 
-const THEMES = [
-  { k: "classico-escuro", l: "Clássico escuro", bg: "#0b0b0b", fg: "#faf8f4" },
-  { k: "editorial-claro", l: "Editorial claro", bg: "#f4efe6", fg: "#1f1914" },
-  { k: "sepia", l: "Sépia", bg: "#2a1f17", fg: "#f3e6d3" },
-  { k: "minimal", l: "Minimal", bg: "#ffffff", fg: "#111111" },
-];
-const ACCENTS = ["#c9a77c", "#b8826a", "#a7b39a", "#9fb3c8", "#c99aa8", "#d8c3a5"];
 
-export default function Publicar({ d, patchEvent, toast }: Ctx) {
+export default function Publicar({ d, patchEvent, toast, reload }: Ctx) {
   const e = d.event;
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const link = `${origin}/${e.slug}`;
@@ -51,21 +45,7 @@ export default function Publicar({ d, patchEvent, toast }: Ctx) {
             <p className="mt-1 text-xs text-white/50">Ao expirar, as versões web saem do armazenamento e os originais continuam no Drive. Dá para reativar depois.</p></div>
         </div>
 
-        <div className="card space-y-4 p-5">
-          <div className="label">Tema visual</div>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {THEMES.map((t) => (
-              <button key={t.k} onClick={() => patchEvent({ theme: t.k })} className={`rounded-xl border p-3 text-left text-xs ${e.theme === t.k ? "border-sand" : "border-white/10"}`}>
-                <div className="mb-2 flex h-12 items-end rounded-lg p-2 font-serif text-sm" style={{ background: t.bg, color: t.fg }}>Aa <span className="ml-1 h-1.5 w-6 rounded-full" style={{ background: e.accent_color }} /></div>{t.l}
-              </button>
-            ))}
-          </div>
-          <div className="label">Cor de destaque</div>
-          <div className="flex flex-wrap items-center gap-2">
-            {ACCENTS.map((c) => <button key={c} onClick={() => patchEvent({ accent_color: c })} className={`h-8 w-8 rounded-full ring-2 ring-offset-2 ring-offset-[#151311] ${e.accent_color === c ? "ring-cream" : "ring-transparent"}`} style={{ background: c }} aria-label={c} />)}
-            <input type="color" value={e.accent_color} onChange={(ev) => patchEvent({ accent_color: ev.target.value })} className="h-8 w-10 cursor-pointer rounded bg-transparent" />
-          </div>
-        </div>
+        <Aparencia d={d} patchEvent={patchEvent} toast={toast} reload={reload} />
       </div>
 
       <div className="space-y-6">

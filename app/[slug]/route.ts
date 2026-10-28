@@ -1,6 +1,9 @@
 import { getEventBySlug, buildStoryData, isExpired, RESERVED_SLUGS, SITE_URL, BE_WHATSAPP } from "@/lib/events";
 import { hasEventAccess, isAdmin, visitorId } from "@/lib/auth";
 import { page, htmlResponse, storyMarkup, safeJson, esc } from "@/lib/html";
+import { fontCss, type CustomFont, type EventFonts } from "@/lib/fonts";
+import { sql } from "@/lib/db";
+import { signedUrl } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +37,20 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
   const body = `${storyMarkup()}
 <script id="story-data" type="application/json">${safeJson(data)}</script>
 <script src="/story/story.js?v=${process.env.NEXT_PUBLIC_ASSET_VERSION || "1"}" defer></script>`;
-  return htmlResponse(page({ title, description: desc, ogImage: og, url: `${SITE_URL()}/${slug}`, body, bodyClass: "lock", theme: ev.theme }));
+  return htmlResponse(page({ title, description: desc, ogImage: og, url: `${SITE_URL()}/${slug}`, body, bodyClass: "lock", theme: ev.theme, head: await eventFontHead(ev) }));
+}
+
+/** Fontes escolhidas no painel para este evento (catálogo ou fontes próprias da BE). */
+async function eventFontHead(ev: object) {
+  const chosen = ((ev as { fonts?: unknown }).fonts ?? {}) as EventFonts;
+  const ids = Object.values(chosen).filter((v): v is string => typeof v === "string" && v.startsWith("custom:")).map((v) => v.slice(7));
+  let custom: CustomFont[] = [];
+  if (ids.length) {
+    const rows = await sql()`select id, name, key, format from brand_fonts where id = any(${ids}::uuid[])`;
+    custom = await Promise.all(rows.map(async (r) => ({ id: r.id as string, name: r.name as string, format: r.format as string, url: (await signedUrl(r.key, { expires: 86400 })) ?? "" })));
+  }
+  const css = fontCss(chosen, custom);
+  return css ? `<style id="event-fonts">${css.replace(/<\//g, "<\\/")}</style>` : "";
 }
 
 function notFound() {

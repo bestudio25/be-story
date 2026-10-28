@@ -170,18 +170,25 @@ function ChapterNode({ c, depth, sel, setSel, kids, count, ctx, siblings, idx }:
           </form>
         ) : (
           <button onClick={() => setSel(c.id)} onDoubleClick={() => setEdit(true)} className={`flex flex-1 items-center justify-between truncate px-3 py-2 text-left ${c.is_internal ? "text-white/35 line-through" : "text-white/80"}`}>
-            <span className="truncate">{depth ? "└ " : ""}{c.name}</span><span className="ml-2 text-xs text-white/40">{count(c.id)}</span>
+            <span className="truncate">{depth ? "└ " : ""}{c.name}{c.is_raw && <span className="ml-2 rounded-full bg-sand/20 px-1.5 py-0.5 text-[10px] text-sand">brutos · Drive</span>}</span><span className="ml-2 text-xs text-white/40">{count(c.id)}</span>
           </button>
         )}
         <div className="hidden shrink-0 items-center gap-0.5 text-xs text-white/50 group-hover:flex">
           <button title="Subir" onClick={() => move(-1)} className="px-1 hover:text-cream">↑</button>
           <button title="Descer" onClick={() => move(1)} className="px-1 hover:text-cream">↓</button>
           <button title="Renomear" onClick={() => setEdit(true)} className="px-1 hover:text-cream">✎</button>
+          <button title={c.is_raw ? "Voltar a ser capítulo normal (processa e mostra na galeria)" : "Arquivos brutos: não aparecem na galeria, o cliente baixa direto do Drive"} onClick={() => save({ is_raw: !c.is_raw })} className={`px-1 hover:text-cream ${c.is_raw ? "text-sand" : ""}`}>⇩</button>
           <button title={c.is_internal ? "Mostrar ao cliente" : "Esconder do cliente"} onClick={() => save({ is_internal: !c.is_internal })} className="px-1 hover:text-cream">{c.is_internal ? "◌" : "◉"}</button>
           <button title="Subcapítulo" onClick={async () => { const n = prompt("Nome do subcapítulo"); if (n) { await api("/api/admin/chapters", { body: { eventId: ctx.d.event.id, parentId: c.id, name: n } }); await ctx.reload(); } }} className="px-1 hover:text-cream">+</button>
           <button title="Excluir capítulo (os arquivos sobem um nível)" onClick={async () => { if (confirm(`Excluir o capítulo "${c.name}"? Os arquivos não são apagados.`)) { await api(`/api/admin/chapters?id=${c.id}`, { method: "DELETE" }); await ctx.reload(); } }} className="px-1 hover:text-red-300">×</button>
         </div>
       </div>
+      {sel === c.id && c.is_raw && (
+        <p className="my-1 rounded-lg bg-sand/10 p-2 text-xs text-white/70" style={{ marginLeft: depth * 14 + 8 }}>
+          Arquivos brutos: não são processados nem aparecem na galeria. No site, o cliente vê a lista e baixa cada arquivo direto do Drive (sem abrir o Drive), ou a pasta inteira.
+          A pasta precisa estar compartilhada no Drive como <b>“Qualquer pessoa com o link · Leitor”</b>.
+        </p>
+      )}
       {sel === c.id && (
         <input className="field my-1 py-1 text-xs" style={{ marginLeft: depth * 14 + 8, width: `calc(100% - ${depth * 14 + 8}px)` }} placeholder="Descrição curta (aparece no card do capítulo)"
           defaultValue={c.description ?? ""} onBlur={(e) => e.target.value !== (c.description ?? "") && save({ description: e.target.value })} />

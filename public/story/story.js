@@ -81,6 +81,7 @@ function paintReveal(p){
   dev.style.webkitMaskImage = m; dev.style.maskImage = m; dev.style.opacity = Math.min(1, 1.25-e);
   $('#op-bar').style.width = (p*100)+'%';
 }
+document.fonts && document.fonts.ready.then(()=>{ try{ fitHand($('#pol-hand')); const fh=$('#fim-hand'); if(fh&&fh.classList.contains('write')) fitHand(fh); }catch{} });
 function fitHand(t){ try{ let fs=50; t.style.fontSize=fs+'px'; while(t.getComputedTextLength()>300 && fs>18){ fs-=2; t.style.fontSize=fs+'px'; } }catch{} }
 function boost(v){ if(done) return; progress=Math.min(1,progress+v); }
 function tick(now){
@@ -356,6 +357,24 @@ async function shareFile(f){ track('share',{fileId:f.id}); const url=location.hr
 const TOTAL=FILES.reduce((s,f)=>s+f.size,0);
 $('#dl-total').innerHTML= TOTAL ? fmtBytes(TOTAL).replace(/ (GB|MB)/,'<small>$1</small>') : FILES.length+'<small>arquivos</small>';
 $('#dl-total-sub').textContent=`${FILES.length} arquivos originais em um único ZIP. Para arquivos grandes, preparamos o ZIP e avisamos quando estiver pronto.`;
+// ── Arquivos brutos: baixam direto do Drive, sem o cliente precisar abrir o Drive ──
+const RAW = DATA.raw || [];
+if (RAW.length) {
+  const nRaw = RAW.reduce((a,r)=>a+r.files.length,0), sRaw = RAW.reduce((a,r)=>a+r.size,0);
+  $('#raw-card').hidden = false;
+  $('#raw-sub').textContent = `${nRaw} arquivos sem edição${sRaw?' · '+fmtBytes(sRaw):''}. Para quem quer guardar tudo do jeito que foi gravado.`;
+  const folder = RAW.length===1 ? RAW[0].folder : null;
+  if (folder) { const a=$('#raw-folder'); a.href=folder; a.hidden=false; a.addEventListener('click',()=>track('raw_folder')); }
+  let rendered=false;
+  $('#raw-open').addEventListener('click', ()=>{
+    if(!rendered){ rendered=true;
+      const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+      $('#raw-list').innerHTML = RAW.map(r=>{ let last; return (RAW.length>1?`<h4>${esc(r.name)}</h4>`:'') + r.files.map(f=>{ const head = f.sub && f.sub!==last ? `<h4>${esc(last=f.sub)}</h4>` : ''; return head+`<a class="raw-row" href="${esc(f.url)}" target="_blank" rel="noopener" download><span>${esc(f.name)}</span><small>${f.size?fmtBytes(f.size):''}<svg class="icon"><use href="#i-dl"/></svg></small></a>`; }).join(''); }).join('');
+      $('#raw-list').addEventListener('click', e=>{ if(e.target.closest('.raw-row')) { track('raw_download'); toast('Baixando do Drive…'); } });
+    }
+    openModal('#raw-modal');
+  });
+}
 $('#dl-list').innerHTML=tops.map(c=>{ const fs=filesIn(c.id), s=fs.reduce((a,f)=>a+f.size,0); return `<div class="dl-row"><div>${c.name}<small>${fs.length} arquivos${s?' · '+fmtBytes(s):''}</small></div><button data-zip="chapter:${c.id}"><svg class="icon"><use href="#i-dl"/></svg>Baixar</button></div>`; }).join('');
 let ZIP=null, zipTimer=null;
 async function startZip(scope){
@@ -406,7 +425,8 @@ const loadImg=src=>new Promise((r,j)=>{ const i=new Image(); if(/^https?:/.test(
 async function drawPG(){
   $$('[data-pick]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pick===PG.id));
   const f=FILES.find(x=>x.id===PG.id); const c=$('#pg-canvas'), W=1080, H=PG.fmt==='feed'?1350:1920; c.width=W; c.height=H; const x=c.getContext('2d');
-  try{ await document.fonts.load('80px "Gentlemens Script"'); await document.fonts.load('80px "Allura"'); await document.fonts.load('italic 30px "Libre Baskerville"'); await document.fonts.load('500 20px Poppins'); }catch{}
+  const css=getComputedStyle(document.documentElement), SCRIPT=css.getPropertyValue('--script').trim()||'"Gentlemens Script", cursive', SANS=css.getPropertyValue('--sans').trim()||'Poppins, sans-serif';
+  try{ await document.fonts.load(`80px ${SCRIPT}`); await document.fonts.load(`500 20px ${SANS}`); }catch{}
   const img=await loadImg(M(f.poster)||M(f.thumb)), logo=await loadImg(M('logo'));
   // fundo quente com a própria foto desfocada
   x.fillStyle='#0f0d0b'; x.fillRect(0,0,W,H); x.save(); x.filter='blur(40px) brightness(.45)'; cover(x,img,-60,-60,W+120,H+120); x.restore();
@@ -415,12 +435,12 @@ async function drawPG(){
   x.save(); x.translate(W/2,py+ph/2); x.rotate(-2*Math.PI/180); x.translate(-W/2,-(py+ph/2));
   x.shadowColor='rgba(0,0,0,.6)'; x.shadowBlur=60; x.shadowOffsetY=30; x.fillStyle='#f6f1e7'; x.fillRect(px,py,pw,ph); x.shadowColor='transparent';
   const iw=pw-pad*2; cover(x,img,px+pad,py+pad,iw,iw);
-  x.fillStyle='#2b2420'; x.textAlign='center'; x.font=`${Math.round(pw*.1)}px "Gentlemens Script", Allura, cursive`;
-  x.fillText(EV.clientNames, W/2, py+pad+iw+(ph-pad-iw)*.5); x.font=`500 ${Math.round(pw*.026)}px Poppins, sans-serif`; x.fillStyle='#6b5d52'; x.letterSpacing=Math.round(pw*.01)+'px'; x.fillText(dateShort(EV.eventDate), W/2+pw*.005, py+pad+iw+(ph-pad-iw)*.82); x.letterSpacing='0px';
+  x.fillStyle='#2b2420'; x.textAlign='center'; x.font=`${Math.round(pw*.1)}px ${SCRIPT}`;
+  x.fillText(EV.clientNames, W/2, py+pad+iw+(ph-pad-iw)*.5); x.font=`500 ${Math.round(pw*.026)}px ${SANS}`; x.fillStyle='#6b5d52'; x.letterSpacing=Math.round(pw*.01)+'px'; x.fillText(dateShort(EV.eventDate), W/2+pw*.005, py+pad+iw+(ph-pad-iw)*.82); x.letterSpacing='0px';
   x.restore();
   // assinatura discreta
   const lw=64, lh=lw*logo.height/logo.width; x.globalAlpha=.85; x.drawImage(logo,W/2-lw/2,H-(PG.fmt==='feed'?160:250),lw,lh); x.globalAlpha=1;
-  x.fillStyle='rgba(250,248,244,.6)'; x.font='500 20px Poppins, sans-serif'; x.letterSpacing='6px'; x.fillText('BE STORY · @BESTUDIOAUDIOVISUAL', W/2, H-(PG.fmt==='feed'?52:140)); x.letterSpacing='0px';
+  x.fillStyle='rgba(250,248,244,.6)'; x.font=`500 20px ${SANS}`; x.letterSpacing='6px'; x.fillText('BE STORY · @BESTUDIOAUDIOVISUAL', W/2, H-(PG.fmt==='feed'?52:140)); x.letterSpacing='0px';
 }
 function cover(x,img,dx,dy,dw,dh){ const r=Math.max(dw/img.width,dh/img.height), sw=dw/r, sh=dh/r; x.drawImage(img,(img.width-sw)/2,(img.height-sh)/2,sw,sh,dx,dy,dw,dh); }
 $('#pg-dl').onclick=()=>{ track('share',{fileId:PG.id,meta:{what:'polaroid'}}); $('#pg-canvas').toBlob(b=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=`polaroid-${EV.slug}-${PG.fmt}.jpg`; a.click(); toast('Polaroid baixada'); },'image/jpeg',.92); };

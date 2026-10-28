@@ -206,3 +206,13 @@ create table if not exists uploads (
 -- ── Ajustes incrementais (idempotentes) ──────────────────────────
 alter table events add column if not exists soundtrack_name text;
 alter table events add column if not exists soundtrack_start_sec numeric not null default 0;
+alter table chapters add column if not exists is_raw boolean not null default false;
+alter table events add column if not exists fonts jsonb not null default '{}'::jsonb;
+create table if not exists brand_fonts (
+  id         uuid primary key default gen_random_uuid(),
+  name       text not null,
+  key        text not null,
+  format     text not null,
+  created_at timestamptz not null default now()
+);
+alter type event_theme add value if not exists 'creme';

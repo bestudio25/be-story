@@ -7,6 +7,7 @@ import { RESERVED_SLUGS } from "@/lib/events";
 import { parseFolderId } from "@/lib/drive";
 
 type P = { params: Promise<{ id: string }> };
+const THEMES = ["classico-escuro", "editorial-claro", "sepia", "minimal", "creme"];
 
 export const GET = handle(async (_req: Request, { params }: P) => {
   await requireAdmin();
@@ -32,6 +33,14 @@ export const PATCH = handle(async (req: Request, { params }: P) => {
     const v = String(set.drive_folder_id);
     try { set.drive_folder_id = v.startsWith("local:") ? v : parseFolderId(v); } catch (e) { return json({ error: (e as Error).message }, 400); }
   }
+  if ("fonts" in b) {
+    const fonts: Record<string, string> = {};
+    const src = (b.fonts ?? {}) as Record<string, unknown>;
+    for (const role of ["titulo", "texto", "manuscrita"]) if (typeof src[role] === "string" && /^[a-z0-9:-]{2,60}$/.test(src[role] as string)) fonts[role] = src[role] as string;
+    set.fonts = db.json(fonts as never);
+  }
+  if ("theme" in set && !THEMES.includes(String(set.theme))) return json({ error: "Tema inválido" }, 400);
+  if ("accent_color" in set && !/^#[0-9a-f]{6}$/i.test(String(set.accent_color))) return json({ error: "Cor inválida" }, 400);
   if ("password" in b) set.password_hash = b.password ? await hashKeyword(String(b.password)) : null;
   if (set.status === "ativo") {
     const [cur] = await db`select status, published_at from events where id = ${id}`;

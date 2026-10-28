@@ -16,6 +16,7 @@ export default function Metricas({ d, toast, reload }: Ctx) {
     ["Downloads", t("download").n, fmtBytes(t("download").v)], ["ZIPs pedidos", t("zip").n],
     ["Compartilhamentos", t("share").n], ["Favoritos", m?.favorites ?? 0],
     ["Indicações geradas", m?.referrals.links ?? 0, `${m?.referrals.clicks ?? 0} cliques`],
+    ["Brutos baixados", t("raw_download").n, t("raw_folder").n ? `${t("raw_folder").n} abriram a pasta` : undefined],
   ];
   return (
     <div className="space-y-6">

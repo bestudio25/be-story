@@ -124,9 +124,9 @@ async function fetchSource(f: FileRow, dir: string) {
 async function inInternalChapter(fileId: string) {
   const [r] = await sql()`
     with recursive up as (
-      select c.id, c.parent_id, c.is_internal from chapters c join files f on f.chapter_id = c.id where f.id = ${fileId}
+      select c.id, c.parent_id, (c.is_internal or c.is_raw) as is_internal from chapters c join files f on f.chapter_id = c.id where f.id = ${fileId}
       union all
-      select c.id, c.parent_id, c.is_internal from chapters c join up on c.id = up.parent_id
+      select c.id, c.parent_id, (c.is_internal or c.is_raw) as is_internal from chapters c join up on c.id = up.parent_id
     ) select coalesce(bool_or(is_internal), false) as hidden from up`;
   return !!r?.hidden;
 }

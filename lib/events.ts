@@ -39,11 +39,16 @@ export interface ClientFile {
 export interface ClientChapter {
   id: string; parentId: string | null; name: string; position: number; description?: string; cover?: string; preview?: string;
 }
+export interface RawFolder { name: string; folder?: string; size: number; files: { name: string; size: number; kind: string; sub?: string; url: string }[] }
+/** Link de download direto do Drive (o arquivo precisa estar compartilhado como "qualquer pessoa com o link"). */
+export const driveDownloadUrl = (id: string) => `https://drive.usercontent.google.com/download?id=${encodeURIComponent(id)}&export=download&confirm=t`;
+
 export interface StoryData {
   event: { id: string; slug: string; title: string; clientNames: string; eventDate: string; location?: string; shareCaption: string; letter?: string; accent: string; theme: string };
   files: ClientFile[];
   chapters: ClientChapter[];
   heroSlides: string[];
+  raw: RawFolder[];
   media: Record<string, string | undefined>;
   links: { whatsapp: string; instagram: string; site: string };
   favorites: string[];
@@ -57,7 +62,7 @@ export async function buildStoryData(ev: EventRow, visitorId: string | null, opt
   const [chRows, fileRows] = await Promise.all([
     db`select * from chapters where event_id = ${ev.id} order by position, name`,
     db`select f.* from files f left join chapters c on c.id = f.chapter_id
-       where f.event_id = ${ev.id} and coalesce(c.is_internal, false) = false
+       where f.event_id = ${ev.id} and coalesce(c.is_internal, false) = false and coalesce(c.is_raw, false) = false
        order by f.position, f.recorded_at nulls last, f.original_name`,
   ]);
   // capítulos internos (e seus filhos) ficam de fora
@@ -65,7 +70,7 @@ export async function buildStoryData(ev: EventRow, visitorId: string | null, opt
   let changed = true;
   while (changed) {
     changed = false;
-    for (const c of chRows) if (!hidden.has(c.id) && (c.is_internal || (c.parent_id && hidden.has(c.parent_id)))) { hidden.add(c.id); changed = true; }
+    for (const c of chRows) if (!hidden.has(c.id) && (c.is_internal || c.is_raw || (c.parent_id && hidden.has(c.parent_id)))) { hidden.add(c.id); changed = true; }
   }
 
   const sign = (k: string | null) => signedUrl(k);
@@ -111,6 +116,21 @@ export async function buildStoryData(ev: EventRow, visitorId: string | null, opt
     : files.filter((f) => f.highlight && f.kind === "foto").slice(0, 9).map((f) => f.id);
   const heroSlides = [cover, ...heroIds.map((id) => photo(id)).filter((u): u is string => !!u && u !== cover)];
 
+  // ── Arquivos brutos: ficam no Drive; o cliente baixa direto de lá (sem abrir o Drive) ──
+  const rawRoots = chRows.filter((c) => c.is_raw && !c.is_internal && !(c.parent_id && hidden.has(c.parent_id)));
+  const raw: RawFolder[] = [];
+  for (const root of rawRoots) {
+    const ids = [...descendants(root.id, chRows)].filter((id) => !chRows.find((c) => c.id === id)?.is_internal);
+    const rows = await db`select f.original_name, f.size_bytes, f.kind, f.drive_file_id, f.chapter_id from files f
+                          where f.chapter_id = any(${ids}::uuid[]) and f.drive_file_id is not null order by f.original_name`;
+    const files = rows.filter((r) => !String(r.drive_file_id).includes(":")).map((r) => ({
+      name: r.original_name as string, size: Number(r.size_bytes), kind: r.kind as string,
+      sub: r.chapter_id !== root.id ? (chRows.find((c) => c.id === r.chapter_id)?.name as string | undefined) : undefined,
+      url: driveDownloadUrl(r.drive_file_id as string),
+    }));
+    if (files.length) raw.push({ name: root.name, folder: root.drive_folder_id && !String(root.drive_folder_id).includes(":") ? `https://drive.google.com/drive/folders/${root.drive_folder_id}` : undefined, size: files.reduce((a, f) => a + f.size, 0), files });
+  }
+
   let favorites: string[] = [];
   const reactions: Record<string, string[]> = {};
   if (visitorId) {
@@ -126,7 +146,7 @@ export async function buildStoryData(ev: EventRow, visitorId: string | null, opt
       shareCaption: ev.share_caption || DEFAULT_CAPTION(ev.client_names), letter: ev.letter ?? undefined,
       accent: ev.accent_color, theme: ev.theme,
     },
-    files, chapters, heroSlides,
+    files, chapters, heroSlides, raw,
     media: {
       logo: "/brand/be-logo-cream.png",
       cover,

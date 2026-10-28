@@ -1,63 +1,75 @@
 name: BE STORY · processamento
 
+# Economia de minutos: só liga as máquinas de processamento quando há trabalho na fila.
+# O painel acorda o worker na hora (Gerar site, Sincronizar, ZIP, reenviar); uma checagem diária cobre expirações.
 on:
   repository_dispatch:
-    types: [be-story-jobs]        # acionado pelo painel (Gerar site, Sincronizar, ZIP)
+    types: [be-story-jobs]
   schedule:
-    - cron: "*/15 * * * *"        # rede de segurança: verifica a fila a cada 15 min
+    - cron: "17 9 * * *"          # 1x por dia: expira eventos vencidos e pega o que tiver ficado na fila
   workflow_dispatch: {}
 
 concurrency:
   group: be-story-worker
   cancel-in-progress: false
 
+env:
+  QUEUE_SQL: >-
+    select (select count(*) from jobs where (status='pendente' and run_after <= now())
+            or (status='processando' and updated_at < now() - interval '90 minutes'))
+         + (select count(*) from events where status='ativo' and expires_at < now())
+
 jobs:
-  worker:
+  # 1 máquina, poucos segundos: vê se há fila e decide quantas máquinas ligar (1 a 4)
+  check:
     runs-on: ubuntu-latest
-    timeout-minutes: 350
-    # 4 máquinas em paralelo dividem a fila (cada uma pega o próximo item livre); as que não acham trabalho encerram logo
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
+    timeout-minutes: 5
+    outputs:
+      pending: ${{ steps.queue.outputs.pending }}
+      shards: ${{ steps.queue.outputs.shards }}
     steps:
-      - name: Verificar se há trabalho na fila
+      - name: Verificar a fila
         id: queue
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          sudo apt-get install -y -qq postgresql-client >/dev/null
-          N=$(psql "$DATABASE_URL" -tAc "select (select count(*) from jobs where (status='pendente' and run_after <= now())
-                 or (status='processando' and updated_at < now() - interval '90 minutes'))
-                 + (select count(*) from events where status='ativo' and expires_at < now())" || echo 1)
-          echo "pending=$N" >> "$GITHUB_OUTPUT"
-          echo "Itens na fila: $N"
+          command -v psql >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client >/dev/null)
+          N=$(psql "$DATABASE_URL" -tAc "$QUEUE_SQL" 2>/dev/null || echo 1)
+          N=${N:-0}
+          if [ "$N" -ge 30 ]; then S='[1,2,3,4]'; elif [ "$N" -ge 10 ]; then S='[1,2]'; else S='[1]'; fi
+          echo "pending=$N" >> "$GITHUB_OUTPUT"; echo "shards=$S" >> "$GITHUB_OUTPUT"
+          echo "Itens na fila: $N · máquinas: $S"
 
+  worker:
+    needs: check
+    if: needs.check.outputs.pending != '0'
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    # as máquinas dividem a fila (cada uma pega o próximo item livre)
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.check.outputs.shards) }}
+    steps:
       - uses: actions/checkout@v4
-        if: steps.queue.outputs.pending != '0'
 
       - uses: actions/setup-node@v4
-        if: steps.queue.outputs.pending != '0'
         with:
           node-version: 22
           cache: npm
 
       - name: Instalar ffmpeg, exiftool e libheif
-        if: steps.queue.outputs.pending != '0'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg libimage-exiftool-perl libheif-examples >/dev/null && (sudo apt-get install -y -qq libheif-plugin-libde265 >/dev/null || true)
 
       - name: Instalar dependências
-        if: steps.queue.outputs.pending != '0'
         run: npm ci --no-audit --no-fund
 
       - name: Atualizar banco (idempotente)
-        if: steps.queue.outputs.pending != '0'
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npm run db:migrate
 
       - name: Processar fila
-        if: steps.queue.outputs.pending != '0'
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           R2_ACCOUNT_ID: b0e34e2cf7d2c5071f46f78a20a553c0
@@ -71,3 +83,24 @@ jobs:
           WORKER_CONCURRENCY: "2"
           WORKER_MAX_MINUTES: "330"
         run: npm run worker
+
+  # se a fila não acabou (ex.: limite de tempo da máquina), agenda a próxima rodada sozinho
+  rearm:
+    needs: [check, worker]
+    if: always() && needs.check.outputs.pending != '0' && needs.worker.result != 'cancelled'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Ainda há fila?
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          command -v psql >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client >/dev/null)
+          N=$(psql "$DATABASE_URL" -tAc "select count(*) from jobs where status='pendente'" 2>/dev/null || echo 0)
+          echo "Pendentes: $N"
+          if [ "${N:-0}" != "0" ] && [ "${{ needs.worker.result }}" = "success" ]; then
+            gh api repos/${{ github.repository }}/dispatches -f event_type=be-story-jobs
+          fi

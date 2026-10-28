@@ -212,13 +212,10 @@ function toggleFav(id, btn){
 function burst(ch,x,y){ const s=document.createElement('span'); s.className='burst'; s.textContent=ch; s.style.left=x+'px'; s.style.top=y+'px'; document.body.appendChild(s); setTimeout(()=>s.remove(),1000); }
 function updateFavUI(){
   $('#fav-count').textContent=favs.size; $('#c-fav').textContent=favs.size||'';
-  const wall=$('#mural-wall'); const list=FILES.filter(f=>favs.has(f.id));
-  if(!list.length){ wall.innerHTML = `<div class="empty" style="padding:20px"><p>Seu mural ainda está vazio. Que tal começar pelos <a href="#destaques">destaques</a>?</p></div>`; }
-  else wall.innerHTML = list.map((f,i)=>`<button class="mini-pol" data-open="${f.id}" style="transform:rotate(${[-4,3,-2,5,-3,2][i%6]}deg)" aria-label="Abrir ${f.name}"><div class="ph"><img loading="lazy" src="${M(f.thumb)}" alt=""></div><span>${f.name}</span></button>`).join('');
   const fb=FILES.filter(f=>favs.has(f.id)).reduce((s,f)=>s+f.size,0);
   $$('[data-zip="fav"]').forEach(b=>b.disabled=!favs.size); $$('[data-zip="fav"]').forEach(b=>b.style.opacity=favs.size?1:.45);
 }
-$('#fav-jump').addEventListener('click',()=>$('#mural').scrollIntoView({behavior:reduce?'auto':'smooth'}));
+$('#fav-jump').addEventListener('click',()=>{ const b=$('[data-filter="fav"]'); if(b) b.click(); $('#galeria').scrollIntoView({behavior:reduce?'auto':'smooth'}); });
 
 // ═════════ CAPÍTULOS ═════════
 const tops = CH.filter(c=>!c.parentId).sort((a,b)=>a.position-b.position);
@@ -300,7 +297,7 @@ $('#sort').addEventListener('change',e=>{ state.sort=e.target.value; renderGrid(
 // delegação: abrir / favoritar
 document.addEventListener('click', e=>{
   const fb=e.target.closest('.fav[data-id]'); if(fb && !fb.closest('#viewer')){ e.stopPropagation(); toggleFav(fb.dataset.id, fb); return; }
-  const o=e.target.closest('[data-open]'); if(o){ const list = o.closest('#grid') ? state.list : o.closest('#hl-rail') ? HL : o.closest('#mural') ? FILES.filter(f=>favs.has(f.id)) : FILES; openViewer(o.dataset.open, list); }
+  const o=e.target.closest('[data-open]'); if(o){ const list = o.closest('#grid') ? state.list : o.closest('#hl-rail') ? HL : FILES; openViewer(o.dataset.open, list); }
   const z=e.target.closest('[data-zip]'); if(z) startZip(z.dataset.zip);
 });
 document.addEventListener('keydown', e=>{ const t=e.target.closest&&e.target.closest('.tile[data-open]'); if(t&&(e.key==='Enter'||e.key===' ')&&!e.target.closest('.fav')){ e.preventDefault(); openViewer(t.dataset.open,state.list); } });
@@ -363,17 +360,31 @@ if (RAW.length) {
   const nRaw = RAW.reduce((a,r)=>a+r.files.length,0), sRaw = RAW.reduce((a,r)=>a+r.size,0);
   $('#raw-card').hidden = false;
   $('#raw-sub').textContent = `${nRaw} arquivos sem edição${sRaw?' · '+fmtBytes(sRaw):''}. Para quem quer guardar tudo do jeito que foi gravado.`;
-  const folder = RAW.length===1 ? RAW[0].folder : null;
-  if (folder) { const a=$('#raw-folder'); a.href=folder; a.hidden=false; a.addEventListener('click',()=>track('raw_folder')); }
-  let rendered=false;
-  $('#raw-open').addEventListener('click', ()=>{
-    if(!rendered){ rendered=true;
-      const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-      $('#raw-list').innerHTML = RAW.map(r=>{ let last; return (RAW.length>1?`<h4>${esc(r.name)}</h4>`:'') + r.files.map(f=>{ const head = f.sub && f.sub!==last ? `<h4>${esc(last=f.sub)}</h4>` : ''; return head+`<a class="raw-row" href="${esc(f.url)}" target="_blank" rel="noopener" download><span>${esc(f.name)}</span><small>${f.size?fmtBytes(f.size):''}<svg class="icon"><use href="#i-dl"/></svg></small></a>`; }).join(''); }).join('');
-      $('#raw-list').addEventListener('click', e=>{ if(e.target.closest('.raw-row')) { track('raw_download'); toast('Baixando do Drive…'); } });
-    }
-    openModal('#raw-modal');
-  });
+  const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const sz = sRaw ? fmtBytes(sRaw) : '';
+  $('#raw-guide').innerHTML = `
+    <div class="raw-step-box"><h4>Antes de começar</h4><ul>
+      <li>Use um <b>computador</b>. No celular, o Drive não baixa a pasta inteira.</li>
+      <li>Deixe ${sz?`pelo menos <b>${sz}</b>`:'bastante espaço'} livre no computador (ou no HD externo).</li>
+      <li>Use uma internet estável e deixe a página aberta até o fim.</li>
+    </ul></div>
+    <div class="raw-step-box"><h4>Passo a passo</h4><ol>
+      <li>Clique em <b>“Abrir pasta no Drive”</b>, aqui embaixo.</li>
+      <li>No Drive, clique em <b>“Fazer download de tudo”</b>, no canto superior direito. Se não aparecer, clique no nome da pasta, no topo, e depois em <b>“Fazer download”</b>.</li>
+      <li>O Drive mostra <b>“Preparando o download”</b> no canto da tela. Pode levar alguns minutos. Não feche a aba.</li>
+      <li>Se o navegador perguntar se pode baixar vários arquivos, clique em <b>“Permitir”</b>.</li>
+      <li>Os arquivos chegam em <b>várias partes .zip</b> (de até 2 GB cada), com final -001, -002, -003… Baixe todas.</li>
+      <li>Se aparecer o aviso de que o Drive não conseguiu verificar vírus, clique em <b>“Fazer o download assim mesmo”</b>. Vídeos grandes podem vir separados, fora do .zip.</li>
+    </ol></div>
+    <div class="raw-step-box"><h4>Para não faltar nenhum arquivo</h4><ul>
+      <li>Confira se a numeração das partes está em sequência, sem pular nenhuma.</li>
+      <li>Extraia todas as partes <b>na mesma pasta</b>: no Windows, botão direito → “Extrair tudo”; no Mac, clique duas vezes.</li>
+      <li>No final, a pasta deve ter <b>${nRaw} arquivos</b>. Se faltar algum, volte ao Drive e baixe só ele (botão direito no arquivo → “Fazer download”).</li>
+      <li>Guarde uma cópia em um HD externo ou na nuvem.</li>
+    </ul></div>`;
+  $('#raw-actions').innerHTML = RAW.filter(r=>r.folder).map(r=>`<a class="pill pill-cream" href="${esc(r.folder)}" target="_blank" rel="noopener"><svg class="icon"><use href="#i-dl"/></svg>Abrir pasta no Drive${RAW.length>1?' · '+esc(r.name):''}</a>`).join('');
+  $('#raw-actions').addEventListener('click', e=>{ if(e.target.closest('a')) track('raw_folder'); });
+  $('#raw-open').addEventListener('click', ()=>openModal('#raw-modal'));
 }
 $('#dl-list').innerHTML=tops.map(c=>{ const fs=filesIn(c.id), s=fs.reduce((a,f)=>a+f.size,0); return `<div class="dl-row"><div>${c.name}<small>${fs.length} arquivos${s?' · '+fmtBytes(s):''}</small></div><button data-zip="chapter:${c.id}"><svg class="icon"><use href="#i-dl"/></svg>Baixar</button></div>`; }).join('');
 let ZIP=null, zipTimer=null;

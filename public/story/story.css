@@ -370,3 +370,10 @@ footer a{text-decoration:none}
 .raw-row span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .raw-row small{color:var(--faint);font-size:12px;white-space:nowrap;display:flex;align-items:center;gap:6px}
 .raw-row small .icon{width:15px;height:15px;color:var(--accent)}
+.raw-sheet{display:flex;flex-direction:column;gap:14px}
+.raw-guide{overflow:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:12px;margin:0 -6px;padding:0 6px}
+.raw-step-box{border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.raw-step-box h4{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);font-weight:500;margin:0 0 8px}
+.raw-step-box ul,.raw-step-box ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:7px;font-size:14px;line-height:1.5;color:var(--cream)}
+.raw-step-box b{font-weight:600}
+.raw-actions{display:flex;flex-wrap:wrap;gap:10px}

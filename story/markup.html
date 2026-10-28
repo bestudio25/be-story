@@ -151,18 +151,6 @@
     </div>
   </section>
 
-  <!-- MURAL -->
-  <section id="mural" style="padding-top:40px">
-    <div class="wrap">
-      <div class="sec-head reveal-up" style="text-align:center;align-items:center">
-        <span class="eyebrow">Seus favoritos</span>
-        <h2 class="h2">O mural de vocês</h2>
-        <p class="lead">Toque no coração em qualquer foto ou vídeo e ela vem morar aqui.</p>
-      </div>
-      <div class="mural" id="mural-wall"></div>
-    </div>
-  </section>
-
   <!-- DOWNLOADS -->
   <section id="baixar">
     <div class="wrap">
@@ -194,8 +182,7 @@
           <p class="lead" style="font-size:14px" id="raw-sub"></p>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:10px">
-          <button class="pill pill-cream" id="raw-open"><svg class="icon"><use href="#i-dl"/></svg>Ver e baixar arquivos</button>
-          <a class="pill pill-ghost" id="raw-folder" target="_blank" rel="noopener" hidden>Baixar a pasta inteira</a>
+          <button class="pill pill-cream" id="raw-open"><svg class="icon"><use href="#i-dl"/></svg>Baixar arquivos brutos</button>
         </div>
       </div>
     </div>
@@ -322,11 +309,11 @@
 <div class="modal" id="raw-modal" role="dialog" aria-modal="true" aria-labelledby="raw-t">
   <div class="sheet raw-sheet">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-      <h3 id="raw-t">Arquivos brutos</h3>
+      <h3 id="raw-t">Como baixar todos os arquivos brutos</h3>
       <button class="round" data-close aria-label="Fechar"><svg class="icon"><use href="#i-x"/></svg></button>
     </div>
-    <p id="raw-desc">Os arquivos sem edição, em qualidade original. Toque em um arquivo para baixar.</p>
-    <div class="raw-list" id="raw-list"></div>
+    <div class="raw-guide" id="raw-guide"></div>
+    <div class="raw-actions" id="raw-actions"></div>
   </div>
 </div>
 

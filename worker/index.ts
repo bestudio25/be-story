@@ -151,8 +151,14 @@ async function processFile(fileId: string) {
       let input = src;
       if (/\.(heic|heif)$/i.test(ext)) {
         input = path.join(dir, "conv.jpg");
-        if (HAS_HEIF) await run("heif-convert", ["-q", "95", src, input]);
-        else await sharp(src).jpeg({ quality: 95 }).toFile(input); // pode falhar sem libheif
+        // 1º heif-convert do sistema; se falhar (ex.: foto em modo retrato do iPhone, com mapa de profundidade), usa pillow-heif, que traz um libheif mais novo
+        const viaPython = () => run("python3", ["-c", "import sys,pillow_heif;from PIL import Image;pillow_heif.register_heif_opener();Image.open(sys.argv[1]).convert('RGB').save(sys.argv[2],quality=95)", src, input]);
+        try {
+          if (HAS_HEIF) await run("heif-convert", ["-q", "95", src, input]);
+          else await viaPython();
+        } catch (e) {
+          try { await viaPython(); } catch { throw e; }
+        }
       }
       const img = sharp(input, { failOn: "none" }).rotate();
       const m = await img.metadata();

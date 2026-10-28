@@ -59,7 +59,7 @@ jobs:
           cache: npm
 
       - name: Instalar ffmpeg, exiftool e libheif
-        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg libimage-exiftool-perl libheif-examples >/dev/null && (sudo apt-get install -y -qq libheif-plugin-libde265 >/dev/null || true)
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg libimage-exiftool-perl libheif-examples >/dev/null && (sudo apt-get install -y -qq libheif-plugin-libde265 >/dev/null || true) && (pip3 install -q --break-system-packages pillow-heif || pip3 install -q pillow-heif || true)
 
       - name: Instalar dependências
         run: npm ci --no-audit --no-fund

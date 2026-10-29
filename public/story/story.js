@@ -245,7 +245,7 @@ $$('[data-rail]').forEach(b=>b.addEventListener('click',()=>{ const r=$('#'+b.da
 const HL = FILES.filter(f=>f.highlight);
 $('#hl-rail').innerHTML = HL.map(f=>`<button class="hl" data-open="${f.id}" aria-label="${f.name}">
   <div class="ph"><img loading="lazy" src="${M(f.thumb)}" alt="">${f.kind==='video'?`<span class="badge"><svg class="icon"><use href="#i-play"/></svg>${fmtDur(f.duration)}</span>`:''}</div>
-  <div class="cap"><b>${[chapterName(f.chapterId),fmtTime(f.recordedAt)].filter(Boolean).join(' · ')}</b>${f.name}</div></button>`).join('');
+  </button>`).join('');
 function chapterName(id){ let c=CH.find(x=>x.id===id); while(c&&c.parentId) c=CH.find(x=>x.id===c.parentId); return c?c.name:''; }
 
 // ═════════ GALERIA ═════════
@@ -384,8 +384,6 @@ if (RAW.length) {
     </ul></div>`;
   $('#raw-count').innerHTML = `Esta pasta tem <b>${nRaw} arquivos</b>${sz?` · ${sz}`:''}.`;
   const folderBtns = (cls)=>RAW.filter(r=>r.folder).map(r=>`<a class="pill ${cls}" href="${esc(r.folder)}" target="_blank" rel="noopener"><svg class="icon"><use href="#i-dl"/></svg>Abrir pasta no Drive${RAW.length>1?' · '+esc(r.name):''}</a>`).join('');
-  $('#raw-folder-btn').outerHTML = `<span id="raw-folder-btn" style="display:contents">${folderBtns('pill-cream')}</span>`;
-  $('#raw-folder-btn').addEventListener('click', e=>{ if(e.target.closest('a')) track('raw_folder'); });
   $('#raw-actions').innerHTML = folderBtns('pill-cream');
   $('#raw-actions').addEventListener('click', e=>{ if(e.target.closest('a')) track('raw_folder'); });
   $('#raw-open').addEventListener('click', ()=>openModal('#raw-modal'));
@@ -484,7 +482,18 @@ $('#restart').onclick=()=>{ store.set('revealed',false); location.hash=''; locat
 
 // ── início ──
 if(DATA.preview){ $('#demo-tag').textContent='Pré-visualização'; } else { $('#demo-tag').remove(); }
-document.documentElement.style.setProperty('--accent', EV.accent || '#c9a77c');
+(function accentContrast(){
+  // Cor de destaque legível: no fundo do tema e nas áreas escuras (sobre fotos, cartões escuros)
+  const hex=(EV.accent||'#c9a77c').replace('#',''); const rgb=[0,2,4].map(i=>parseInt(hex.slice(i,i+2),16)/255);
+  const lum=rgb.map(c=>c<=.03928?c/12.92:Math.pow((c+.055)/1.055,2.4)).reduce((a,c,i)=>a+c*[.2126,.7152,.0722][i],0);
+  const darkTheme=['classico-escuro','sepia'].includes(EV.theme||'classico-escuro');
+  const base='#'+hex, root=document.documentElement.style;
+  const onDark = lum>.3 ? base : `color-mix(in srgb, ${base} 35%, #faf4ea)`;
+  const onLight = lum<.25 ? base : `color-mix(in srgb, ${base} 55%, #20150c)`;
+  root.setProperty('--accent', darkTheme ? onDark : onLight);
+  root.setProperty('--accent-hi', onDark);
+})();
+if (EV.expiresAt) { const d=new Date(EV.expiresAt); $('#dl-lead').textContent = `Os arquivos ficam no ar até ${d.toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric',timeZone:'America/Fortaleza'})}. Baixe tudo para o seu armazenamento e reviva sempre que quiser.`; }
 if(EV.letter){ const L=$('#op-letter'); $$('#op-letter p.l').forEach(p=>p.remove()); const anchor=L.querySelector('.sign'); EV.letter.split(/\n\s*\n/).map(t=>t.trim()).filter(Boolean).forEach(t=>{ const p=document.createElement('p'); p.className='l'; p.textContent=t; L.insertBefore(p, anchor); }); }
 $('#n-name').placeholder=EV.clientNames;
 $('#footer-ig').href='https://instagram.com/'+DATA.links.instagram; $('#footer-ig').textContent='@'+DATA.links.instagram;

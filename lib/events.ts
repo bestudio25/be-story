@@ -44,7 +44,7 @@ export interface RawFolder { name: string; folder?: string; size: number; files:
 export const driveDownloadUrl = (id: string) => `https://drive.usercontent.google.com/download?id=${encodeURIComponent(id)}&export=download&confirm=t`;
 
 export interface StoryData {
-  event: { id: string; slug: string; title: string; clientNames: string; eventDate: string; location?: string; shareCaption: string; letter?: string; accent: string; theme: string };
+  event: { id: string; slug: string; title: string; clientNames: string; eventDate: string; location?: string; shareCaption: string; letter?: string; accent: string; theme: string; expiresAt?: string };
   files: ClientFile[];
   chapters: ClientChapter[];
   heroSlides: string[];
@@ -144,7 +144,7 @@ export async function buildStoryData(ev: EventRow, visitorId: string | null, opt
       id: ev.id, slug: ev.slug, title: ev.title, clientNames: ev.client_names,
       eventDate: ev.event_date.toISOString().slice(0, 10), location: ev.location ?? undefined,
       shareCaption: ev.share_caption || DEFAULT_CAPTION(ev.client_names), letter: ev.letter ?? undefined,
-      accent: ev.accent_color, theme: ev.theme,
+      accent: ev.accent_color, theme: ev.theme, expiresAt: ev.expires_at ? new Date(ev.expires_at).toISOString() : undefined,
     },
     files, chapters, heroSlides, raw,
     media: {

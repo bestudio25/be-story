@@ -24,6 +24,14 @@ const ROLES: { k: FontRole; l: string; s: string }[] = [
 type Custom = { id: string; name: string; format: string; url: string };
 const FMT: Record<string, string> = { woff2: "woff2", woff: "woff", otf: "opentype", ttf: "truetype" };
 
+/** Mesma regra da página do casal: a cor de destaque é escurecida/clareada para ficar legível no fundo escolhido. */
+function readableAccent(accent: string, darkBg: boolean) {
+  const h = (accent || "#c9a77c").replace("#", "");
+  const lum = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4))).reduce((a, c, i) => a + c * [0.2126, 0.7152, 0.0722][i], 0);
+  if (darkBg) return lum > 0.3 ? `#${h}` : `color-mix(in srgb, #${h} 35%, #faf4ea)`;
+  return lum < 0.25 ? `#${h}` : `color-mix(in srgb, #${h} 55%, #20150c)`;
+}
+
 export default function Aparencia({ d, patchEvent, toast }: Ctx) {
   const e = d.event;
   const [custom, setCustom] = useState<Custom[]>([]);
@@ -102,7 +110,7 @@ export default function Aparencia({ d, patchEvent, toast }: Ctx) {
         <div style={{ fontFamily: fam(fonts.titulo), fontStyle: "italic", fontSize: 22, marginTop: 14 }}>Para guardar, lembrar e reviver.</div>
         <div style={{ fontFamily: fam(fonts.texto), fontSize: 13, opacity: .75, marginTop: 6 }}>Um dia especial merece um lugar para ser lembrado.</div>
         <div className="mt-3 flex items-center gap-2" style={{ fontFamily: fam(fonts.texto), fontSize: 12 }}>
-          <span style={{ fontFamily: fam(fonts.manuscrita), fontSize: 22, color: e.accent_color }}>Com carinho,</span><span style={{ letterSpacing: ".2em" }}>BE STUDIO</span>
+          <span style={{ fontFamily: fam(fonts.manuscrita), fontSize: 22, color: readableAccent(e.accent_color, ["classico-escuro", "sepia"].includes(theme.k)) }}>Com carinho,</span><span style={{ letterSpacing: ".2em" }}>BE STUDIO</span>
         </div>
       </div>
 

@@ -493,7 +493,6 @@ if(DATA.preview){ $('#demo-tag').textContent='Pré-visualização'; } else { $('
   root.setProperty('--accent', darkTheme ? onDark : onLight);
   root.setProperty('--accent-hi', onDark);
 })();
-if (EV.expiresAt) { const d=new Date(EV.expiresAt); $('#dl-lead').textContent = `Os arquivos ficam no ar até ${d.toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:'numeric',timeZone:'America/Fortaleza'})}. Baixe tudo para o seu armazenamento e reviva sempre que quiser.`; }
 if(EV.letter){ const L=$('#op-letter'); $$('#op-letter p.l').forEach(p=>p.remove()); const anchor=L.querySelector('.sign'); EV.letter.split(/\n\s*\n/).map(t=>t.trim()).filter(Boolean).forEach(t=>{ const p=document.createElement('p'); p.className='l'; p.textContent=t; L.insertBefore(p, anchor); }); }
 $('#n-name').placeholder=EV.clientNames;
 $('#footer-ig').href='https://instagram.com/'+DATA.links.instagram; $('#footer-ig').textContent='@'+DATA.links.instagram;

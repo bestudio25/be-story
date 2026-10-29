@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Versão dos arquivos da página do casal muda a cada publicação, para o navegador nunca misturar JS/CSS antigo com HTML novo
+  env: { NEXT_PUBLIC_ASSET_VERSION: process.env.NEXT_PUBLIC_ASSET_VERSION || (process.env.COMMIT_REF || "").slice(0, 8) || String(Date.now()) },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.r2.dev" },

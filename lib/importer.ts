@@ -64,6 +64,7 @@ export interface SyncResult {
   newFiles: number;
   totalFiles: number;
   removed: number;
+  renamed: number;
   reels: string | null;
 }
 
@@ -92,7 +93,8 @@ export async function syncEvent(eventId: string): Promise<SyncResult> {
   }
 
   // ── arquivos (em lote: uma consulta para todos, rápido mesmo com centenas de arquivos) ──
-  const prev = new Map((await db`select drive_file_id, processing from files where event_id = ${eventId}`).map((r) => [r.drive_file_id as string, r.processing as string]));
+  const prevRows = await db`select id, drive_file_id, processing, original_name, display_name from files where event_id = ${eventId}`;
+  const prev = new Map(prevRows.map((r) => [r.drive_file_id as string, r.processing as string]));
   const sorted = [...tree.files].sort((a, b) => a.name.localeCompare(b.name, "pt-BR", { numeric: true }));
   const rows = sorted.map((f, pos) => {
     const isReels = f.path.length === 0 && REELS_PATTERN.test(f.name) && isVideo(f);
@@ -111,6 +113,17 @@ export async function syncEvent(eventId: string): Promise<SyncResult> {
       on conflict (event_id, drive_file_id) do update set size_bytes = excluded.size_bytes, original_name = excluded.original_name,
         is_reels = case when files.chapter_id is null then excluded.is_reels else files.is_reels end
       returning id, drive_file_id, is_reels` as unknown as { id: string; drive_file_id: string; is_reels: boolean }[]));
+  }
+  // ── nomes renomeados no Drive: o nome exibido acompanha, a não ser que tenha sido trocado à mão no painel ──
+  const newName = new Map(tree.files.map((f) => [f.id, f.name]));
+  let renamed = 0;
+  for (const r of prevRows) {
+    const now = newName.get(r.drive_file_id as string);
+    if (!now || now === r.original_name) continue;
+    const auto = friendlyName(r.original_name as string);
+    if (r.display_name !== auto && r.display_name !== (r.original_name as string).replace(/\.[^.]+$/, "")) continue;
+    await db`update files set display_name = ${friendlyName(now)} where id = ${r.id}`;
+    renamed++;
   }
   // arquivos em capítulos internos (e subcapítulos) não entram na fila
   const chs = await db`select id, parent_id, is_internal, is_raw from chapters where event_id = ${eventId}`;
@@ -160,7 +173,7 @@ export async function syncEvent(eventId: string): Promise<SyncResult> {
   const reelsId = saved.find((r) => r.is_reels)?.id ?? null;
   if (reelsId) await db`update events set reels_file_id = ${reelsId} where id = ${eventId} and reels_file_id is null`;
   await db`update events set drive_synced_at = now(), updated_at = now() where id = ${eventId}`;
-  return { chapters: tree.folders.length, newFiles, totalFiles: tree.files.length, removed, reels: reelsId };
+  return { chapters: tree.folders.length, newFiles, totalFiles: tree.files.length, removed, renamed, reels: reelsId };
 }
 
 function isVideo(f: DriveNode) {

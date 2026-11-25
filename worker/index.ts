@@ -97,6 +97,7 @@ async function handle(kind: string, p: Record<string, string>): Promise<string |
     case "poster_frame": return posterFrame(p.fileId);
     case "build_zip": return buildZip(p.zipId);
     case "purge_event": return purgeEvent(p.eventId, !!p.deleteRow);
+    case "purge_files": return purgeFiles(p.eventId, (p.keys ?? []) as unknown as string[]);
     case "reprocess_event": {
       for (const f of await sql()`select id from files where event_id = ${p.eventId}`) await enqueueJob("process_file", { fileId: f.id }, { dedupe: true });
       return;
@@ -393,6 +394,18 @@ async function purgeEvent(eventId: string, deleteRow: boolean) {
     await db`update events set storage_bytes = (select coalesce(sum(web_bytes),0) from files where event_id = ${eventId}) where id = ${eventId}`;
   }
   log(`evento ${eventId}: ${(freed / 1e9).toFixed(2)} GB liberados`);
+}
+
+/** Arquivos apagados do Drive: remove as cópias e versões web do armazenamento. */
+async function purgeFiles(eventId: string, keyList: string[]) {
+  let freed = 0;
+  for (const k of keyList) {
+    // versões web ficam numa pasta por arquivo (events/<ev>/web/<id>/...): apaga a pasta inteira
+    const m = /^(events\/[^/]+\/web\/[^/]+\/)/.exec(k);
+    freed += await storage.deletePrefix(m ? m[1] : k);
+  }
+  await sql()`update events set storage_bytes = (select coalesce(sum(web_bytes),0) from files where event_id = ${eventId}) where id = ${eventId}`;
+  log(`evento ${eventId}: arquivos apagados do Drive, ${(freed / 1e9).toFixed(2)} GB liberados`);
 }
 
 /** Depois de processar: ordena pela hora de gravação (se o admin não reordenou) e atualiza o espaço usado. */

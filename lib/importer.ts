@@ -63,6 +63,7 @@ export interface SyncResult {
   chapters: number;
   newFiles: number;
   totalFiles: number;
+  removed: number;
   reels: string | null;
 }
 
@@ -131,10 +132,35 @@ export async function syncEvent(eventId: string): Promise<SyncResult> {
     await db`insert into jobs (kind, payload) select 'process_file', json_build_object('fileId', x)::jsonb from unnest(${ids}::uuid[]) as x
              where not exists (select 1 from jobs j where j.kind = 'process_file' and j.payload->>'fileId' = x::text and j.status in ('pendente','processando'))`;
   }
+  // ── arquivos apagados do Drive saem da plataforma (e do armazenamento) ──
+  // Só quando a leitura do Drive trouxe arquivos, para nunca esvaziar um evento por falha momentânea de leitura.
+  let removed = 0;
+  if (tree.files.length) {
+    const inDrive = tree.files.map((f) => f.id);
+    const gone = await db`select id, master_key, thumb_key, poster_key, web_key, lite_key from files
+      where event_id = ${eventId} and drive_file_id not like 'upload:%' and not (drive_file_id = any(${inDrive}::text[]))`;
+    if (gone.length) {
+      const ids = gone.map((g) => g.id as string);
+      const keysToDelete = gone.flatMap((g) => [g.master_key, g.thumb_key, g.poster_key, g.web_key, g.lite_key]).filter(Boolean);
+      await db`update events set
+        cover_file_id = case when cover_file_id = any(${ids}::uuid[]) then null else cover_file_id end,
+        polaroid_file_id = case when polaroid_file_id = any(${ids}::uuid[]) then null else polaroid_file_id end,
+        final_file_id = case when final_file_id = any(${ids}::uuid[]) then null else final_file_id end,
+        reels_file_id = case when reels_file_id = any(${ids}::uuid[]) then null else reels_file_id end,
+        film_file_id = case when film_file_id = any(${ids}::uuid[]) then null else film_file_id end,
+        hero_file_ids = array(select x from unnest(hero_file_ids) x where not (x = any(${ids}::uuid[])))
+        where id = ${eventId}`;
+      await db`update chapters set cover_file_id = null where event_id = ${eventId} and cover_file_id = any(${ids}::uuid[])`;
+      await db`delete from jobs where kind = 'process_file' and status = 'pendente' and payload->>'fileId' = any(${ids}::text[])`;
+      await db`delete from files where id = any(${ids}::uuid[])`;
+      if (keysToDelete.length) await db`insert into jobs (kind, payload) values ('purge_files', ${db.json({ eventId, keys: keysToDelete } as never)})`;
+      removed = gone.length;
+    }
+  }
   const reelsId = saved.find((r) => r.is_reels)?.id ?? null;
   if (reelsId) await db`update events set reels_file_id = ${reelsId} where id = ${eventId} and reels_file_id is null`;
   await db`update events set drive_synced_at = now(), updated_at = now() where id = ${eventId}`;
-  return { chapters: tree.folders.length, newFiles, totalFiles: tree.files.length, reels: reelsId };
+  return { chapters: tree.folders.length, newFiles, totalFiles: tree.files.length, removed, reels: reelsId };
 }
 
 function isVideo(f: DriveNode) {

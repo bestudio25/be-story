@@ -37,8 +37,8 @@ export default function Arquivos(ctx: Ctx & { onError: (m: string) => void }) {
     setSyncing(true); onError("");
     try {
       if (drive && !drive.includes(d.event.drive_folder_id ?? "∅")) await api(`/api/admin/events/${d.event.id}`, { method: "PATCH", body: { drive_folder_id: drive } });
-      const r = await api<{ newFiles: number; totalFiles: number; chapters: number; worker: boolean }>(`/api/admin/events/${d.event.id}/sync`, { body: {} });
-      toast(r.newFiles ? `${r.newFiles} arquivos novos na fila de processamento` : "Tudo sincronizado, nenhum arquivo novo");
+      const r = await api<{ newFiles: number; removed?: number; totalFiles: number; chapters: number; worker: boolean }>(`/api/admin/events/${d.event.id}/sync`, { body: {} });
+      toast([r.newFiles ? `${r.newFiles} arquivos novos na fila de processamento` : "", r.removed ? `${r.removed} ${r.removed === 1 ? "arquivo apagado do Drive saiu" : "arquivos apagados do Drive saíram"} da plataforma` : ""].filter(Boolean).join(" · ") || "Tudo sincronizado, nenhum arquivo novo");
       await reload();
     } catch (e) { onError((e as Error).message); } finally { setSyncing(false); }
   };
